@@ -10,10 +10,13 @@ import (
 
 func TestApp(t *testing.T) {
 	var tests = []struct {
-		name                                                         string
-		args                                                         []string
-		wanntFooCalled, wantBarCalled, wantBazCalled, wantHelpCalled bool
-		wantErr                                                      bool
+		name           string
+		args           []string
+		wanntFooCalled bool
+		wantBarCalled  bool
+		wantBazCalled  bool
+		wantHelpCalled bool
+		wantErr        bool
 	}{
 		{
 			args:           []string{"app-name", "Foo", "Bar"},
@@ -66,10 +69,7 @@ func TestApp(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			app := Make()
 
-			fooCalled := false
-			barCalled := false
-			bazCalled := false
-			helpCalled := false
+			var fooCalled, barCalled, bazCalled, helpCalled bool
 
 			app.AddExtraHelp(func(context.Context) error {
 				helpCalled = true
