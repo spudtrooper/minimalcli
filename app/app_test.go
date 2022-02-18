@@ -71,25 +71,29 @@ func TestApp(t *testing.T) {
 			bazCalled := false
 			helpCalled := false
 
-			app.AddExtraHelp(func(context.Context, []string) error {
+			app.AddExtraHelp(func(context.Context) error {
 				helpCalled = true
 				return nil
 			})
 
-			app.Register("Foo", func(ctx context.Context, args []string) error {
+			app.Register("Foo", func(ctx context.Context) error {
 				fooCalled = true
 				return nil
 			})
-			app.Register("Bar", func(ctx context.Context, args []string) error {
+			app.Register("Bar", func(ctx context.Context) error {
 				barCalled = true
 				return nil
 			})
-			app.Register("Baz", func(ctx context.Context, args []string) error {
+			app.Register("Baz", func(ctx context.Context) error {
 				bazCalled = true
 				return nil
 			})
 
-			err := app.Run(context.Background(), test.args)
+			if err := app.init(test.args); err != nil {
+				t.Fatalf("init: %v", err)
+			}
+
+			err := app.run(context.Background(), test.args)
 			if test.wantErr && err == nil {
 				t.Fatalf("want error and got none")
 			}

@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"math"
+	"os"
 	"sort"
 	"strings"
 
@@ -17,7 +18,7 @@ var (
 	actions = flag.String("actions", "", "comma-delimited list of calls to make")
 )
 
-type del func(context.Context, []string) error
+type del func(context.Context) error
 
 type cmd struct {
 	name   string
@@ -29,7 +30,6 @@ type app struct {
 	cmds      []*cmd
 	actions   []string
 	extraHelp del
-	args      []string
 }
 
 func Make() *app {
@@ -42,6 +42,10 @@ func (a *app) Register(name string, fn del) {
 		fn:   fn,
 	}
 	a.cmds = append(a.cmds, c)
+}
+
+func (a *app) Init() error {
+	return a.init(os.Args)
 }
 
 func (a *app) init(args []string) error {
@@ -83,12 +87,7 @@ func (a *app) init(args []string) error {
 		}
 	}
 
-	if len(actionList) == 0 {
-		return errors.Errorf("you need to specify at least one call")
-	}
-
 	a.actions = actionList
-	a.args = args
 
 	return nil
 }
@@ -123,7 +122,7 @@ func (a *app) showHelp(ctx context.Context) error {
 	}
 
 	if a.extraHelp != nil {
-		if err := a.extraHelp(ctx, a.args); err != nil {
+		if err := a.extraHelp(ctx); err != nil {
 			return err
 		}
 	}
@@ -179,9 +178,12 @@ func (a *app) preRun() {
 	}
 }
 
-func (a *app) Run(ctx context.Context, args []string) error {
-	a.init(args)
-	a.Register("Help", func(ctx context.Context, args []string) error {
+func (a *app) Run(ctx context.Context) error {
+	return a.run(ctx, os.Args)
+}
+
+func (a *app) run(ctx context.Context, args []string) error {
+	a.Register("Help", func(ctx context.Context) error {
 		if err := a.showHelp(ctx); err != nil {
 			return err
 		}
@@ -197,7 +199,7 @@ func (a *app) Run(ctx context.Context, args []string) error {
 		if c == nil {
 			return errors.Errorf("no action for %q", s)
 		}
-		if err := c.fn(ctx, a.args); err != nil {
+		if err := c.fn(ctx); err != nil {
 			return errors.Errorf("running %q: %v", c.name, err)
 		}
 	}
