@@ -71,20 +71,20 @@ func TestApp(t *testing.T) {
 			bazCalled := false
 			helpCalled := false
 
-			app.AddExtraHelp(func(context.Context) error {
+			app.AddExtraHelp(func(context.Context, []string) error {
 				helpCalled = true
 				return nil
 			})
 
-			app.Register("Foo", func(ctx context.Context) error {
+			app.Register("Foo", func(ctx context.Context, args []string) error {
 				fooCalled = true
 				return nil
 			})
-			app.Register("Bar", func(ctx context.Context) error {
+			app.Register("Bar", func(ctx context.Context, args []string) error {
 				barCalled = true
 				return nil
 			})
-			app.Register("Baz", func(ctx context.Context) error {
+			app.Register("Baz", func(ctx context.Context, args []string) error {
 				bazCalled = true
 				return nil
 			})

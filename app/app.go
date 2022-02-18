@@ -17,7 +17,7 @@ var (
 	actions = flag.String("actions", "", "comma-delimited list of calls to make")
 )
 
-type del func(context.Context) error
+type del func(context.Context, []string) error
 
 type cmd struct {
 	name   string
@@ -29,6 +29,7 @@ type app struct {
 	cmds      []*cmd
 	actions   []string
 	extraHelp del
+	args      []string
 }
 
 func Make() *app {
@@ -87,6 +88,7 @@ func (a *app) init(args []string) error {
 	}
 
 	a.actions = actionList
+	a.args = args
 
 	return nil
 }
@@ -121,7 +123,7 @@ func (a *app) showHelp(ctx context.Context) error {
 	}
 
 	if a.extraHelp != nil {
-		if err := a.extraHelp(ctx); err != nil {
+		if err := a.extraHelp(ctx, a.args); err != nil {
 			return err
 		}
 	}
@@ -179,7 +181,7 @@ func (a *app) preRun() {
 
 func (a *app) Run(ctx context.Context, args []string) error {
 	a.init(args)
-	a.Register("Help", func(ctx context.Context) error {
+	a.Register("Help", func(ctx context.Context, args []string) error {
 		if err := a.showHelp(ctx); err != nil {
 			return err
 		}
@@ -195,7 +197,7 @@ func (a *app) Run(ctx context.Context, args []string) error {
 		if c == nil {
 			return errors.Errorf("no action for %q", s)
 		}
-		if err := c.fn(ctx); err != nil {
+		if err := c.fn(ctx, a.args); err != nil {
 			return errors.Errorf("running %q: %v", c.name, err)
 		}
 	}
