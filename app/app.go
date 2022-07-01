@@ -5,10 +5,13 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log"
 	"math"
 	"os"
 	"sort"
 	"strings"
+
+	"github.com/motki/cli/text/banner"
 
 	"github.com/pkg/errors"
 	"github.com/thomaso-mirodin/intmath/intgr"
@@ -27,14 +30,21 @@ type cmd struct {
 }
 
 type app struct {
-	cmds      []*cmd
-	actions   []string
-	extraHelp del
+	cmds        []*cmd
+	actions     []string
+	extraHelp   del
+	printBanner bool
 }
 
-func Make() *app {
-	return &app{}
+//go:generate genopts --function Make printBanner
+func Make(optss ...MakeOption) *app {
+	opts := MakeMakeOptions(optss...)
+	return &app{
+		printBanner: opts.PrintBanner(),
+	}
 }
+
+func (a *app) SetPrintBanner(printBanner bool) { a.printBanner = printBanner }
 
 func (a *app) Register(name string, fn del) {
 	c := &cmd{
@@ -198,6 +208,11 @@ func (a *app) run(ctx context.Context, args []string) error {
 		c := a.findCmd(s)
 		if c == nil {
 			return errors.Errorf("no action for %q", s)
+		}
+		if a.printBanner {
+			b := banner.Sprintf("%s", c.name)
+			line := strings.Repeat("_", len(strings.Split(b, "\n")[0])+1)
+			log.Printf("\n%s\n%s\n%s", line, b, line)
 		}
 		if err := c.fn(ctx); err != nil {
 			return errors.Errorf("running %q: %v", c.name, err)
