@@ -1,6 +1,6 @@
 module github.com/spudtrooper/minimalcli
 
-go 1.17
+go 1.18
 
 require (
 	github.com/motki/cli v0.4.0
