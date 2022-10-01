@@ -17,17 +17,17 @@ type EvalContext interface {
 }
 
 type cliEvalContext struct {
-	ctx         context.Context
-	stringFlags map[string]*string
-	boolFlags   map[string]*bool
-	intFlags    map[string]*int
-	durFlags    map[string]*time.Duration
+	ctx       context.Context
+	strFlags  map[string]*string
+	boolFlags map[string]*bool
+	intFlags  map[string]*int
+	durFlags  map[string]*time.Duration
 }
 
 func (c *cliEvalContext) Context() context.Context { return c.ctx }
 
 func (c *cliEvalContext) String(name string) (string, bool) {
-	flag, ok := c.stringFlags[name]
+	flag, ok := c.strFlags[name]
 	if !ok {
 		return "", false
 	}

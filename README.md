@@ -26,6 +26,9 @@ So, with this example you could invoke it as:
 
 ## Usage
 
-See `app/app_test.go`.
+* For a simple CLI see `app/app_test.go`.
+* For a combination of CLI and HTTP, see the following example:
+  * Define a set of [Handlers](https://github.com/spudtrooper/opentable/blob/main/handlers/handlers.go)
+  * Use those handlers to create a [CLI](https://github.com/spudtrooper/opentable/blob/main/cli/main.go)
+  * Use the same handlers to create an [HTTP server](https://github.com/spudtrooper/opentable/blob/main/frontend/server.go)
 
-TODO: Document apihandler
