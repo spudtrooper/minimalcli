@@ -3,116 +3,16 @@ package handler
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
-	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 	"text/template"
 
 	"github.com/spudtrooper/goutil/or"
 )
-
-var (
-	invalidURLParamCharsRE = regexp.MustCompile(`["'<>]`)
-)
-
-type errorResponse struct {
-	Error string
-}
-
-func respondWithError(w http.ResponseWriter, req *http.Request, err error) {
-	respondWithJSON(req, w, errorResponse{
-		Error: err.Error(),
-	})
-}
-
-func respondWithErrorString(w http.ResponseWriter, req *http.Request, tmpl string, args ...interface{}) {
-	respondWithJSON(req, w, errorResponse{
-		Error: fmt.Sprintf(tmpl, args...),
-	})
-}
-
-func respondWithJSON(req *http.Request, w http.ResponseWriter, obj interface{}) {
-	j, err := json.Marshal(obj)
-	if err != nil {
-		log.Printf("error: %v", err)
-		return
-	}
-	responseWithJSONBytes(req, w, j)
-}
-
-func responseWithJSONBytes(req *http.Request, w http.ResponseWriter, j []byte) {
-	fmt.Fprint(w, string(j))
-	fmt.Fprint(w, "\n")
-	if debug := getBoolURLParam(req, "debug"); debug {
-		log.Printf("respondWithJSON: %s", string(j))
-	}
-}
-
-func sanitizeURLParam(s string) string {
-	return invalidURLParamCharsRE.ReplaceAllString(s, "")
-}
-
-func getStringURLParam(req *http.Request, key string) string {
-	key = sanitizeURLParam(key)
-	vals := req.URL.Query()[key]
-	if len(vals) > 0 {
-		return vals[0]
-	}
-	return ""
-}
-
-func getStringURLParamOrDie(w http.ResponseWriter, req *http.Request, key string) (string, bool) {
-	if res := getStringURLParam(req, key); res != "" {
-		return res, true
-	}
-	respondWithErrorString(w, req, fmt.Sprintf("%s required", key))
-	return "", false
-}
-
-func getStringListURLParam(req *http.Request, key string) []string {
-	key = sanitizeURLParam(key)
-	p := getStringURLParam(req, key)
-	if p == "" {
-		return []string{}
-	}
-	return strings.Split(p, ",")
-}
-
-func getIntURLParam(req *http.Request, key string) int {
-	key = sanitizeURLParam(key)
-	vals := req.URL.Query()[key]
-	if len(vals) > 0 {
-		v := vals[0]
-		if v != "" {
-			res, err := strconv.Atoi(v)
-			if err != nil {
-				log.Printf("getIntURLParam: %v", err)
-				return 0
-			}
-			return res
-		}
-	}
-	return 0
-}
-
-func getBoolURLParam(req *http.Request, key string) bool {
-	key = sanitizeURLParam(key)
-	vals := req.URL.Query()[key]
-	if len(vals) > 0 {
-		v := vals[0]
-		if v == "0" || strings.ToLower(v) == "false" {
-			return false
-		}
-		return true
-	}
-	return false
-}
 
 //go:generate genopts --function CreateHandler indexTitle:string prefix:string
 func CreateHandler(ctx context.Context, hs []Handler, optss ...CreateHandlerOption) *http.ServeMux {
@@ -128,14 +28,14 @@ func CreateHandler(ctx context.Context, hs []Handler, optss ...CreateHandlerOpti
 		log.Printf("adding route %s", route)
 		mux.HandleFunc(route, fn)
 	}
-	var routes []string
+	routesToHandlers := map[string]*handler{}
 	for _, h := range hs {
 		h := h.(*handler)
 		if h.cliOnly {
 			continue
 		}
 		route := fmt.Sprintf("/%s/%s", prefix, strings.ToLower(h.name))
-		routes = append(routes, route)
+		routesToHandlers[route] = h
 		handleFunc(route, func(w http.ResponseWriter, req *http.Request) {
 			evalCtx := &serverEvalContext{
 				ctx: ctx,
@@ -150,38 +50,126 @@ func CreateHandler(ctx context.Context, hs []Handler, optss ...CreateHandlerOpti
 			respondWithJSON(req, w, res)
 		})
 	}
-	sort.Strings(routes)
 
 	handleFunc(fmt.Sprintf("/%s/", prefix), func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprint(w, genIndex(indexTitle, routes))
+		fmt.Fprint(w, genIndex(indexTitle, prefix, routesToHandlers))
+	})
+
+	handleFunc(fmt.Sprintf("/%s/_edit", prefix), func(w http.ResponseWriter, req *http.Request) {
+		route, ok := getStringURLParamOrDie(w, req, "route")
+		if !ok {
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		fmt.Fprint(w, genEdit(indexTitle, route, routesToHandlers))
 	})
 
 	return mux
 }
 
-func genIndex(title string, routes []string) string {
+func genEdit(title string, route string, routesToHandlers map[string]*handler) string {
 	const t = `
 <!DOCTYPE html>
 <html>
 	<head></head>
 	<body>
 		<h1>{{.Title}}</h1>
+		<h2>{{.Route}}</h2>
+		<form action="{{.Route}}" method="GET">
+			{{range .Forms}}
+				<div>
+					{{.Name}}: <input type="text" name="{{.Name}}" size="50"></input>
+				</div>
+			{{end}}
+			<br/>
+			<input type="submit"></input>
+		</form>
+	</body>
+</html>
+	`
+	type form struct {
+		Name string
+	}
+	var forms []form
+	for r, h := range routesToHandlers {
+		if r != route {
+			continue
+		}
+		if h.metadata.Empty() {
+			continue
+		}
+		for _, p := range h.metadata.Params {
+			f := form{
+				Name: p.Name,
+			}
+			forms = append(forms, f)
+		}
+		break
+	}
+	var data = struct {
+		Title string
+		Route string
+		Forms []form
+	}{
+		Title: title,
+		Route: route,
+		Forms: forms,
+	}
+
+	var buf bytes.Buffer
+	renderTemplate(&buf, t, "index", data)
+	return buf.String()
+}
+
+func genIndex(title string, prefix string, routesToHandlers map[string]*handler) string {
+	const t = `
+{{$prefix := .Prefix}}
+<!DOCTYPE html>
+<html>
+	<head></head>
+	<body>
+		<h1>{{.Title}}</h1>
 		<ul>
-			{{range .Routes}}<li><a href="{{.}}">{{.}}</a></li>
+			{{range .Routes}}
+				<li>
+					<a href="{{.Route}}">{{.Route}}</a>					
+					{{if .HasParams}}
+						(<a href="/{{$prefix}}/_edit?route={{.Route}}">edit</a>)
+					{{end}}
+				</li>
 			{{end}}
 		</ul>
 	</body>
 </html>
 	`
-	var buf bytes.Buffer
+	type route struct {
+		Route     string
+		HasParams bool
+	}
+	var routePaths []string
+	for r := range routesToHandlers {
+		routePaths = append(routePaths, r)
+	}
+	sort.Strings(routePaths)
+	var routes []route
+	for _, r := range routePaths {
+		routes = append(routes, route{
+			Route:     r,
+			HasParams: !routesToHandlers[r].metadata.Empty(),
+		})
+	}
 	var data = struct {
 		Title  string
-		Routes []string
+		Prefix string
+		Routes []route
 	}{
 		Title:  title,
+		Prefix: prefix,
 		Routes: routes,
 	}
+
+	var buf bytes.Buffer
 	renderTemplate(&buf, t, "index", data)
 	return buf.String()
 }
