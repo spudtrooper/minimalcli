@@ -29,24 +29,29 @@ type cmd struct {
 	fn     del
 }
 
-type app struct {
-	cmds        []*cmd
-	actions     []string
-	extraHelp   del
-	printBanner bool
+type PostRunHook func(ctx context.Context) error
+
+type App struct {
+	cmds         []*cmd
+	actions      []string
+	extraHelp    del
+	printBanner  bool
+	postRunHooks []PostRunHook
 }
 
 //go:generate genopts --function Make printBanner
-func Make(optss ...MakeOption) *app {
+func Make(optss ...MakeOption) *App {
 	opts := MakeMakeOptions(optss...)
-	return &app{
+	return &App{
 		printBanner: opts.PrintBanner(),
 	}
 }
 
-func (a *app) SetPrintBanner(printBanner bool) { a.printBanner = printBanner }
+func (a *App) SetPrintBanner(printBanner bool) { a.printBanner = printBanner }
 
-func (a *app) Register(name string, fn del) {
+func (a *App) AddPostRunHook(f PostRunHook) { a.postRunHooks = append(a.postRunHooks, f) }
+
+func (a *App) Register(name string, fn del) {
 	c := &cmd{
 		name: name,
 		fn:   fn,
@@ -54,11 +59,11 @@ func (a *app) Register(name string, fn del) {
 	a.cmds = append(a.cmds, c)
 }
 
-func (a *app) Init() error {
+func (a *App) Init() error {
 	return a.init(os.Args)
 }
 
-func (a *app) init(args []string) error {
+func (a *App) init(args []string) error {
 	var actionList []string
 
 	// Pull arguments before flags into the acton map
@@ -102,11 +107,11 @@ func (a *app) init(args []string) error {
 	return nil
 }
 
-func (a *app) AddExtraHelp(fn del) {
+func (a *App) AddExtraHelp(fn del) {
 	a.extraHelp = fn
 }
 
-func (a *app) showHelp(ctx context.Context) error {
+func (a *App) showHelp(ctx context.Context) error {
 	repeat := func(n int) string {
 		var res string
 		for i := 0; i < n; i++ {
@@ -140,7 +145,7 @@ func (a *app) showHelp(ctx context.Context) error {
 	return nil
 }
 
-func (a *app) findCmd(s string) *cmd {
+func (a *App) findCmd(s string) *cmd {
 	for _, c := range a.cmds {
 		if strings.EqualFold(s, c.name) {
 			return c
@@ -152,7 +157,7 @@ func (a *app) findCmd(s string) *cmd {
 	return nil
 }
 
-func (a *app) preRun() {
+func (a *App) preRun() {
 	sort.Slice(a.cmds, func(i, j int) bool {
 		return a.cmds[i].name < a.cmds[j].name
 	})
@@ -188,11 +193,11 @@ func (a *app) preRun() {
 	}
 }
 
-func (a *app) Run(ctx context.Context) error {
+func (a *App) Run(ctx context.Context) error {
 	return a.run(ctx, os.Args)
 }
 
-func (a *app) run(ctx context.Context, args []string) error {
+func (a *App) run(ctx context.Context, args []string) error {
 	a.Register("Help", func(ctx context.Context) error {
 		if err := a.showHelp(ctx); err != nil {
 			return err
@@ -216,6 +221,11 @@ func (a *app) run(ctx context.Context, args []string) error {
 		}
 		if err := c.fn(ctx); err != nil {
 			return errors.Errorf("running %q: %v", c.name, err)
+		}
+	}
+	for _, f := range a.postRunHooks {
+		if err := f(ctx); err != nil {
+			return err
 		}
 	}
 	return nil
