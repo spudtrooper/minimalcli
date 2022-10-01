@@ -1,6 +1,4 @@
-// Package apihandler generates a CLI and frontend API server to
-// access a third party API.
-package apihandler
+package handler
 
 import (
 	"context"

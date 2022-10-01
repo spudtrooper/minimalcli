@@ -1,5 +1,5 @@
 // DO NOT EDIT MANUALLY: Generated from https://github.com/spudtrooper/genopts
-package apihandler
+package handler
 
 type NewHandlerOption func(*newHandlerOptionImpl)
 

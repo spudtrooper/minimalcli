@@ -1,5 +1,5 @@
-// Package apihandler generates a CLI and frontend API server to access a third party API.
-package apihandler
+// Package handler generates a CLI and frontend API server to access a third party API.
+package handler
 
 type HandlerFn func(ctx EvalContext) (interface{}, error)
 
