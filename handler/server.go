@@ -1,17 +1,20 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
-	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
+	"text/template"
 
-	"github.com/gorilla/handlers"
+	"github.com/spudtrooper/goutil/or"
 )
 
 var (
@@ -111,25 +114,28 @@ func getBoolURLParam(req *http.Request, key string) bool {
 	return false
 }
 
-func CreateHandler(ctx context.Context, staticDir string, hostPort string, hs ...Handler) http.Handler {
+//go:generate genopts --function CreateHandler indexTitle:string prefix:string
+func CreateHandler(ctx context.Context, hs []Handler, optss ...CreateHandlerOption) *http.ServeMux {
+	opts := MakeCreateHandlerOptions(optss...)
+	indexTitle := or.String(opts.IndexTitle(), "API")
+	prefix := or.String(opts.Prefix(), "api")
+
 	mux := http.NewServeMux()
-	if staticDir != "" {
-		mux.Handle("/", handlers.CombinedLoggingHandler(os.Stdout, http.FileServer(http.Dir(staticDir))))
-	}
 
 	log.Printf("Initializing server...")
 
 	handleFunc := func(route string, fn func(w http.ResponseWriter, req *http.Request)) {
-		log.Printf("  route %s %s%s", route, hostPort, route)
+		log.Printf("adding route %s", route)
 		mux.HandleFunc(route, fn)
 	}
-
+	var routes []string
 	for _, h := range hs {
 		h := h.(*handler)
 		if h.cliOnly {
 			continue
 		}
-		route := fmt.Sprintf("/api/%s", strings.ToLower(h.name))
+		route := fmt.Sprintf("/%s/%s", prefix, strings.ToLower(h.name))
+		routes = append(routes, route)
 		handleFunc(route, func(w http.ResponseWriter, req *http.Request) {
 			evalCtx := &serverEvalContext{
 				ctx: ctx,
@@ -144,6 +150,49 @@ func CreateHandler(ctx context.Context, staticDir string, hostPort string, hs ..
 			respondWithJSON(req, w, res)
 		})
 	}
+	sort.Strings(routes)
+
+	handleFunc(fmt.Sprintf("/%s/", prefix), func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		fmt.Fprint(w, genIndex(indexTitle, routes))
+	})
 
 	return mux
+}
+
+func genIndex(title string, routes []string) string {
+	const t = `
+<!DOCTYPE html>
+<html>
+	<head></head>
+	<body>
+		<h1>{{.Title}}</h1>
+		<ul>
+			{{range .Routes}}<li><a href="{{.}}">{{.}}</a></li>
+			{{end}}
+		</ul>
+	</body>
+</html>
+	`
+	var buf bytes.Buffer
+	var data = struct {
+		Title  string
+		Routes []string
+	}{
+		Title:  title,
+		Routes: routes,
+	}
+	renderTemplate(&buf, t, "index", data)
+	return buf.String()
+}
+
+func renderTemplate(buf io.Writer, t string, name string, data interface{}) error {
+	tmpl, err := template.New(name).Parse(strings.TrimSpace(t))
+	if err != nil {
+		return err
+	}
+	if err := tmpl.Execute(buf, data); err != nil {
+		return err
+	}
+	return nil
 }
