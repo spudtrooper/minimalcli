@@ -27,3 +27,5 @@ So, with this example you could invoke it as:
 ## Usage
 
 See `app/app_test.go`.
+
+TODO: Document apihandler
