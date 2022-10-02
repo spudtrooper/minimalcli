@@ -17,7 +17,7 @@ Why not use http://opentable.herokuapp.com/api? It doesn't expose menu items and
 
 ## The Process
 
-I started by converting curl requests in chrome to code as explained [here](https://spudtrooper.github.io/articles/fromcurltogo/). As I convert a request, add it to  [api/core.go](https://github.com/spudtrooper/opentable/blob/main/api/core.go). When I create "derived" functionality, add that to [api/extended.go](https://github.com/spudtrooper/opentable/blob/main/api/extended.go). e.g. `Search` would go in *core* and `SearchAll` that makes a bunch of `Search` calls goes in *extended*.
+I start by converting curl requests in chrome dev console to code as explained [here](https://spudtrooper.github.io/articles/fromcurltogo/). As I convert a request, add it to  [api/core.go](https://github.com/spudtrooper/opentable/blob/main/api/core.go). When I create "derived" functionality, add that to [api/extended.go](https://github.com/spudtrooper/opentable/blob/main/api/extended.go). e.g. `Search` would go in *core* and `SearchAll` that makes a bunch of `Search` calls goes in *extended*.
 
 As I iterate, I like to keep a CLI version going so I can tinker--you could also just write tests. [Here](https://github.com/spudtrooper/opentable/blob/d0e34fba56619538709d51a2aa57b253b91e3294/cli/main.go) is an example of what an itermediate state looked like.
 
