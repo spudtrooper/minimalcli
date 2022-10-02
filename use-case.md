@@ -17,9 +17,9 @@ Why not use http://opentable.herokuapp.com/api? It doesn't expose menu items and
 
 ## The Process
 
-I started by converting curl requests in chrome to code as explained [here](https://spudtrooper.github.io/articles/fromcurltogo/). The idiom I use is to create a [core](https://github.com/spudtrooper/opentable/blob/main/api/core.go) client that represents the basic API and then an [extended](https://github.com/spudtrooper/opentable/blob/main/api/extended.go) version that depends on `core` -- e.g. `Search` would go in `core` and `SearchAll` that makes a bunch of `Search` calls goes in `extended`.
+I started by converting curl requests in chrome to code as explained [here](https://spudtrooper.github.io/articles/fromcurltogo/). As I convert a request, add it to  [api/core.go](https://github.com/spudtrooper/opentable/blob/main/api/core.go). When I create "derived" functionality, add that to [api/extended.go](https://github.com/spudtrooper/opentable/blob/main/api/extended.go). e.g. `Search` would go in *core* and `SearchAll` that makes a bunch of `Search` calls goes in *extended*.
 
-As I iterate, I like to keep a CLI version going so I can tinkder. [Here](https://github.com/spudtrooper/opentable/blob/d0e34fba56619538709d51a2aa57b253b91e3294/cli/main.go) is an example of what an itermediate state looked like.
+As I iterate, I like to keep a CLI version going so I can tinker--you could also just write tests. [Here](https://github.com/spudtrooper/opentable/blob/d0e34fba56619538709d51a2aa57b253b91e3294/cli/main.go) is an example of what an itermediate state looked like.
 
 But I wanted something like http://opentable.herokuapp.com/api without any effort. So, I added the [handler package](https://github.com/spudtrooper/minimalcli/tree/main/handler) (terrible name!) to allow you to get a CLI and little HTTP server with about the same effort. So, instead of hard-coding calls to the client in the CLI, I split it up this way:
   * [handlers/handlers.go](https://github.com/spudtrooper/opentable/blob/main/handlers/handlers.go) has the calls that translate either flags or request params to calls to the API. This is what we previously in [cli/main.go](https://github.com/spudtrooper/opentable/blob/d0e34fba56619538709d51a2aa57b253b91e3294/cli/main.go)
