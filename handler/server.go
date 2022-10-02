@@ -14,10 +14,12 @@ import (
 	"github.com/spudtrooper/goutil/or"
 )
 
-//go:generate genopts --function CreateHandler indexTitle:string prefix:string
+//go:generate genopts --function CreateHandler indexTitle:string prefix:string indexName:string editName:string
 func CreateHandler(ctx context.Context, hs []Handler, optss ...CreateHandlerOption) *http.ServeMux {
 	opts := MakeCreateHandlerOptions(optss...)
 	indexTitle := or.String(opts.IndexTitle(), "API")
+	indexName := opts.IndexName()
+	editName := or.String(opts.EditName(), "_edit")
 	prefix := or.String(opts.Prefix(), "api")
 
 	mux := http.NewServeMux()
@@ -37,59 +39,130 @@ func CreateHandler(ctx context.Context, hs []Handler, optss ...CreateHandlerOpti
 		route := fmt.Sprintf("/%s/%s", prefix, strings.ToLower(h.name))
 		routesToHandlers[route] = h
 		handleFunc(route, func(w http.ResponseWriter, req *http.Request) {
-			evalCtx := &serverEvalContext{
-				ctx: ctx,
-				w:   w,
-				req: req,
-			}
-			res, err := h.fn(evalCtx)
-			if err != nil {
-				respondWithError(w, req, err)
-				return
-			}
-			respondWithJSON(req, w, res)
+			handle(ctx, h, w, req)
 		})
 	}
 
-	handleFunc(fmt.Sprintf("/%s/", prefix), func(w http.ResponseWriter, req *http.Request) {
+	handleFunc(fmt.Sprintf("/%s/%s", prefix, indexName), func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprint(w, genIndex(indexTitle, prefix, routesToHandlers))
+		s, err := genIndex(indexTitle, prefix, editName, routesToHandlers)
+		if err != nil {
+			respondWithError(w, req, err)
+			return
+		}
+		fmt.Fprint(w, s)
 	})
 
-	handleFunc(fmt.Sprintf("/%s/_edit", prefix), func(w http.ResponseWriter, req *http.Request) {
+	handleFunc(fmt.Sprintf("/%s/%s", prefix, editName), func(w http.ResponseWriter, req *http.Request) {
 		route, ok := getStringURLParamOrDie(w, req, "route")
 		if !ok {
 			return
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprint(w, genEdit(indexTitle, route, routesToHandlers))
+		s, err := genEdit(indexTitle, route, prefix, indexName, routesToHandlers)
+		if err != nil {
+			respondWithError(w, req, err)
+			return
+		}
+		fmt.Fprint(w, s)
 	})
 
 	return mux
 }
 
-func genEdit(title string, route string, routesToHandlers map[string]*handler) string {
+func handle(ctx context.Context, h *handler, w http.ResponseWriter, req *http.Request) {
+	if !strings.EqualFold(req.Method, h.method) {
+		respondWithErrorString(w, req, "method %s not supported, only %s supported", req.Method, h.method)
+		return
+	}
+	evalCtx := &serverEvalContext{ctx, w, req}
+	res, err := h.fn(evalCtx)
+	if err != nil {
+		respondWithError(w, req, err)
+		return
+	}
+	respondWithJSON(req, w, res)
+	return
+}
+
+func genEdit(title, route, prefix, indexName string, routesToHandlers map[string]*handler) (string, error) {
 	const t = `
+{{$prefix := .Prefix}}
+{{$indexName := .IndexName}}
 <!DOCTYPE html>
 <html>
-	<head></head>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+			integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+			integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
+		</script>
+
+		<link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png">
+		<link rel="manifest" href="/img/site.webmanifest">	
+	</head>
 	<body>
-		<h1>{{.Title}}</h1>
-		<h2>{{.Route}}</h2>
-		<form action="{{.Route}}" method="GET">
-			{{range .Forms}}
-				<div>
-					{{.Name}}: <input type="text" name="{{.Name}}" size="50"></input>
+		<div class="container-fluid">
+			<h1>{{.Title}}</h1>
+			<h2>{{.Route}}</h2>
+			<form class="row g-1 needs-validation" action="{{.Route}}" method="GET">
+				{{range $i, $f := .Forms}}
+					{{if eq $f.Type "string"}}
+						<div class="col-md-4">
+							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}}</label>
+							<input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
+								{{if $f.Required}}required{{end}}
+							>
+					{{end}}
+					{{if eq $f.Type "duration"}}
+						<div class="col-md-4">
+							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}}</label>
+							<input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
+								{{if $f.Required}}required{{end}}
+							>
+					{{end}}					
+					{{if eq $f.Type "int"}}
+						<div class="col-md-4">
+							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}}</label>
+							<input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
+								{{if $f.Required}}required{{end}}
+							>
+					{{end}}
+					{{if eq $f.Type "bool"}}
+						<div class="col-md-3">
+							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}}</label>
+							<select name="{{$f.Name}}" class="form-select" id="validationCustom{{$i}}">
+								<option selected disabled value="">Choose...</option>
+								<option></option>
+								<option value="true">True</option>
+								<option value="false">False</option>
+							</select>
+							<div class="invalid-feedback">
+								Please select a valid {{$f.Name}}.
+							</div>
+						</div>					
+					{{end}}
+				{{end}}
+				<br/>
+				<div class="col-12">
+					<button class="btn btn-primary" type="submit">Submit</button>
 				</div>
-			{{end}}
+				</form>
 			<br/>
-			<input type="submit"></input>
-		</form>
+			<a href="/{{$prefix}}/{{$indexName}}">Home</a>
+		</div>
 	</body>
 </html>
 	`
 	type form struct {
-		Name string
+		Name     string
+		Required bool
+		Type     HandlerMetadataParamType
 	}
 	var forms []form
 	for r, h := range routesToHandlers {
@@ -101,45 +174,70 @@ func genEdit(title string, route string, routesToHandlers map[string]*handler) s
 		}
 		for _, p := range h.metadata.Params {
 			f := form{
-				Name: p.Name,
+				Name:     p.Name,
+				Type:     p.Type,
+				Required: p.Required,
 			}
 			forms = append(forms, f)
 		}
 		break
 	}
 	var data = struct {
-		Title string
-		Route string
-		Forms []form
+		Title     string
+		Route     string
+		Prefix    string
+		IndexName string
+		Forms     []form
 	}{
-		Title: title,
-		Route: route,
-		Forms: forms,
+		Title:     title,
+		Route:     route,
+		Prefix:    prefix,
+		IndexName: indexName,
+		Forms:     forms,
 	}
 
 	var buf bytes.Buffer
-	renderTemplate(&buf, t, "index", data)
-	return buf.String()
+	if err := renderTemplate(&buf, t, "edit", data); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
 }
 
-func genIndex(title string, prefix string, routesToHandlers map[string]*handler) string {
+func genIndex(title, prefix, editName string, routesToHandlers map[string]*handler) (string, error) {
 	const t = `
 {{$prefix := .Prefix}}
+{{$editName := .EditName}}
 <!DOCTYPE html>
 <html>
-	<head></head>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+			integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+			integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
+		</script>
+
+		<link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png">
+		<link rel="manifest" href="/img/site.webmanifest">	
+	</head>
 	<body>
-		<h1>{{.Title}}</h1>
-		<ul>
-			{{range .Routes}}
-				<li>
-					<a href="{{.Route}}">{{.Route}}</a>					
-					{{if .HasParams}}
-						(<a href="/{{$prefix}}/_edit?route={{.Route}}">edit</a>)
-					{{end}}
-				</li>
-			{{end}}
-		</ul>
+		<div class="container-fluid">
+			<h1>{{.Title}}</h1>
+			<ul>
+				{{range .Routes}}
+					<li>
+						<a href="{{.Route}}">{{.Route}}</a>					
+						{{if .HasParams}}
+							(<a href="/{{$prefix}}/{{$editName}}?route={{.Route}}">edit</a>)
+						{{end}}
+					</li>
+				{{end}}
+			</ul>
+		</div>
 	</body>
 </html>
 	`
@@ -160,18 +258,22 @@ func genIndex(title string, prefix string, routesToHandlers map[string]*handler)
 		})
 	}
 	var data = struct {
-		Title  string
-		Prefix string
-		Routes []route
+		Title    string
+		Prefix   string
+		EditName string
+		Routes   []route
 	}{
-		Title:  title,
-		Prefix: prefix,
-		Routes: routes,
+		Title:    title,
+		Prefix:   prefix,
+		EditName: editName,
+		Routes:   routes,
 	}
 
 	var buf bytes.Buffer
-	renderTemplate(&buf, t, "index", data)
-	return buf.String()
+	if err := renderTemplate(&buf, t, "index", data); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
 }
 
 func renderTemplate(buf io.Writer, t string, name string, data interface{}) error {
