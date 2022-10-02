@@ -1,6 +1,6 @@
 # minimalcli use case
 
-This is an example-driven explanation of why you would ever want to use this.
+Why use this? If you're creating an API and you want to generate a CLI and HTTP server with minimal effort while you iterate.
 
 ## Overview
 
