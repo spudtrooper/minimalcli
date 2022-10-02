@@ -4,7 +4,7 @@ Why use this? If you're creating an API and you want to generate a CLI and HTTP 
 
 ## tl;dr
 
-Create https://unofficial-opentable-api.herokuapp.com/, which is like http://opentable.herokuapp.com/api but more, with next-to-no additional effort than just calling that API.
+I created https://unofficial-opentable-api.herokuapp.com/, which is like http://opentable.herokuapp.com/api but more, with next-to-no additional effort than just calling that API.
 
 ## Overview
 
