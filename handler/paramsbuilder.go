@@ -31,7 +31,7 @@ func (p *paramsBuilder) String(name string) *paramsBuilder {
 	return p
 }
 
-// String creates a new required `string` param
+// RequiredString creates a new required `string` param
 func (p *paramsBuilder) RequiredString(name string) *paramsBuilder {
 	p.params = append(p.params, HandlerMetadataParam{
 		Name:     name,
@@ -41,7 +41,7 @@ func (p *paramsBuilder) RequiredString(name string) *paramsBuilder {
 	return p
 }
 
-// String creates a new optional `bool` param
+// Bool creates a new optional `bool` param
 func (p *paramsBuilder) Bool(name string) *paramsBuilder {
 	p.params = append(p.params, HandlerMetadataParam{
 		Name: name,
@@ -50,7 +50,7 @@ func (p *paramsBuilder) Bool(name string) *paramsBuilder {
 	return p
 }
 
-// String creates a new optional `int` param
+// Int creates a new optional `int` param
 func (p *paramsBuilder) Int(name string) *paramsBuilder {
 	p.params = append(p.params, HandlerMetadataParam{
 		Name: name,
@@ -59,11 +59,20 @@ func (p *paramsBuilder) Int(name string) *paramsBuilder {
 	return p
 }
 
-// String creates a new optional `time.Duration` param
+// Duration creates a new optional `time.Duration` param
 func (p *paramsBuilder) Duration(name string) *paramsBuilder {
 	p.params = append(p.params, HandlerMetadataParam{
 		Name: name,
 		Type: HandlerMetadataParamTypeDuration,
+	})
+	return p
+}
+
+// Float32 creates a new optional `float` param
+func (p *paramsBuilder) Float32(name string) *paramsBuilder {
+	p.params = append(p.params, HandlerMetadataParam{
+		Name: name,
+		Type: HandlerMetadataParamTypeFloat32,
 	})
 	return p
 }

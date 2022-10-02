@@ -114,28 +114,35 @@ func genEdit(title, route, prefix, indexName string, routesToHandlers map[string
 				{{range $i, $f := .Forms}}
 					{{if eq $f.Type "string"}}
 						<div class="col-md-4">
-							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}}</label>
+							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>string</code></label>
 							<input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
 								{{if $f.Required}}required{{end}}
 							>
 					{{end}}
 					{{if eq $f.Type "duration"}}
 						<div class="col-md-4">
-							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}}</label>
+							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>time.Duration</code></label>
 							<input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
 								{{if $f.Required}}required{{end}}
 							>
 					{{end}}					
 					{{if eq $f.Type "int"}}
 						<div class="col-md-4">
-							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}}</label>
+							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>int</code></label>
+							<input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
+								{{if $f.Required}}required{{end}}
+							>
+					{{end}}
+					{{if eq $f.Type "float32"}}
+						<div class="col-md-4">
+							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>float32</code></label>
 							<input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
 								{{if $f.Required}}required{{end}}
 							>
 					{{end}}
 					{{if eq $f.Type "bool"}}
-						<div class="col-md-3">
-							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}}</label>
+						<div class="col-md-4">
+							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>bool</code></label>
 							<select name="{{$f.Name}}" class="form-select" id="validationCustom{{$i}}">
 								<option selected disabled value="">Choose...</option>
 								<option></option>

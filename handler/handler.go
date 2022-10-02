@@ -22,6 +22,7 @@ const (
 	HandlerMetadataParamTypeInt      HandlerMetadataParamType = "int"
 	HandlerMetadataParamTypeBool     HandlerMetadataParamType = "bool"
 	HandlerMetadataParamTypeDuration HandlerMetadataParamType = "duration"
+	HandlerMetadataParamTypeFloat32  HandlerMetadataParamType = "float32"
 )
 
 type HandlerMetadataParam struct {
