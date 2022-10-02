@@ -22,7 +22,7 @@ I start by converting curl requests in chrome dev console to code as explained [
 As I iterate, I like to keep a CLI version going so I can tinker--you could also just write tests. [Here](https://github.com/spudtrooper/opentable/blob/d0e34fba56619538709d51a2aa57b253b91e3294/cli/main.go) is an example of what an itermediate state looked like.
 
 But I wanted something like http://opentable.herokuapp.com/api without any effort. So, I added the [handler package](https://github.com/spudtrooper/minimalcli/tree/main/handler) (terrible name!) to allow you to get a CLI and little HTTP server with about the same effort. So, instead of hard-coding calls to the client in the CLI, I split it up this way:
-  * [handlers/handlers.go](https://github.com/spudtrooper/opentable/blob/main/handlers/handlers.go) has the calls that translate either flags or request params to calls to the API. This is what we previously in [cli/main.go](https://github.com/spudtrooper/opentable/blob/d0e34fba56619538709d51a2aa57b253b91e3294/cli/main.go)
+  * [handlers/handlers.go](https://github.com/spudtrooper/opentable/blob/main/handlers/handlers.go) has the calls that translate either flags or request params to calls to the API. This is what was previously in [cli/main.go](https://github.com/spudtrooper/opentable/blob/d0e34fba56619538709d51a2aa57b253b91e3294/cli/main.go)
   * [cli/main.go](https://github.com/spudtrooper/opentable/blob/main/cli/main.go) uses the handlers plus a little boilerplate to generate a CLI
   * [frontend/server.go](https://github.com/spudtrooper/opentable/blob/main/frontend/server.go) uses the handlers plus a little boilerplate to generate a little HTTP server.
 
