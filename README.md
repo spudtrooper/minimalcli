@@ -2,6 +2,10 @@
 
 Minimal CLI framework for go.
 
+## tl;dr
+
+Why use this? [See here](https://github.com/spudtrooper/minimalcli/blob/main/use-case.md).
+
 ## Details
 
 The CLI will take commands as full names or abbreviations before all the flags. Command are registered with `Register`. Help text looks something like this:
@@ -23,12 +27,3 @@ So, with this example you could invoke it as:
 <app-name> auth --some_flag --another_flag arg-1 arg-2
 <app-name> a --some_flag --another_flag arg-1 arg-2
 ```
-
-## Usage
-
-* For a simple CLI see [app/app_test.go](https://github.com/spudtrooper/minimalcli/blob/main/app/app_test.go)
-* For a combination of CLI and HTTP server, see the following example:
-  * Define a set of [Handlers](https://github.com/spudtrooper/opentable/blob/main/handlers/handlers.go)
-  * Use those handlers to create a [CLI](https://github.com/spudtrooper/opentable/blob/main/cli/main.go)
-  * Use the same handlers to create an [HTTP server](https://github.com/spudtrooper/opentable/blob/main/frontend/server.go)
-
