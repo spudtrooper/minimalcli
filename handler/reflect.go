@@ -2,6 +2,7 @@ package handler
 
 import (
 	"reflect"
+	"strings"
 
 	"github.com/iancoleman/strcase"
 	"github.com/spudtrooper/goutil/or"
@@ -29,8 +30,9 @@ func metadataFromStruct(ctor CtorFn) HandlerMetadata {
 	}
 }
 
-func toCamelCase(s string) string {
-	return strcase.ToLowerCamel(s)
+func toSnakeCase(s string) string {
+	return strcase.ToSnake(s)
+	// return strcase.ToLowerCamel(s)
 }
 
 func typeFromKind(k reflect.Kind) HandlerMetadataParamType {
@@ -62,15 +64,20 @@ func paramsFromStruct(ctor CtorFn) []HandlerMetadataParam {
 		if !f.IsExported() {
 			continue
 		}
-		name := toCamelCase(f.Name)
-		p := HandlerMetadataParam{
-			Name: name,
+		params = append(params, HandlerMetadataParam{
+			Name: toSnakeCase(f.Name),
 			Type: typeFromKind(f.Type.Kind()),
-		}
-		params = append(params, p)
+		})
 	}
 	return params
 
+}
+
+func findJsonName(f reflect.StructField) string {
+	if jt, ok := f.Tag.Lookup("json"); ok {
+		return strings.Split(jt, ",")[0]
+	}
+	return toSnakeCase(f.Name)
 }
 
 func fnFromStruct(ctor CtorFn) HandlerFn {
@@ -87,23 +94,23 @@ func fnFromStruct(ctor CtorFn) HandlerFn {
 			if f := typ.Field(i); !f.IsExported() {
 				continue
 			}
-			name := typ.Field(i).Name
-			f := tmp.FieldByName(name)
+			f := tmp.FieldByName(typ.Field(i).Name)
 			if !f.CanSet() || !f.IsValid() {
 				continue
 			}
+			nameInCtx := findJsonName(typ.Field(i))
 			switch f.Kind() {
 			case reflect.String:
-				f.SetString(ctx.String(toCamelCase(name)))
+				f.SetString(ctx.String(nameInCtx))
 			case reflect.Int:
-				f.SetInt(int64(ctx.Int(toCamelCase(name))))
+				f.SetInt(int64(ctx.Int(nameInCtx)))
 			case reflect.Bool:
-				f.SetBool(ctx.Bool(toCamelCase(name)))
+				f.SetBool(ctx.Bool(nameInCtx))
 			case reflect.Float32:
-				f.SetFloat(float64(ctx.Float32(toCamelCase(name))))
+				f.SetFloat(float64(ctx.Float32(nameInCtx)))
 			case reflect.Struct:
 				if f.Type().String() == "time.Duration" {
-					f.Set(reflect.ValueOf(ctx.Duration(toCamelCase(name))))
+					f.Set(reflect.ValueOf(ctx.Duration(nameInCtx)))
 				}
 			default:
 				panic("unkown type")
