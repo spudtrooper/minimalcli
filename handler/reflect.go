@@ -163,7 +163,7 @@ func setValuesOnParams(ctx EvalContext, pCtor CtorFn, fs []reflect.StructField) 
 				f.Set(reflect.ValueOf(t))
 			}
 		default:
-			panic("unkown type")
+			return nil, false, errors.Errorf("unkown type")
 		}
 	}
 	v.Set(tmp)
