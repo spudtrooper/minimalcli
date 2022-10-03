@@ -1,7 +1,9 @@
 // Package handler generates a CLI and frontend API server to access a third party API.
 package handler
 
-import "github.com/spudtrooper/goutil/or"
+import (
+	"github.com/spudtrooper/goutil/or"
+)
 
 type HandlerFn func(ctx EvalContext) (interface{}, error)
 
@@ -23,6 +25,7 @@ const (
 	HandlerMetadataParamTypeBool     HandlerMetadataParamType = "bool"
 	HandlerMetadataParamTypeDuration HandlerMetadataParamType = "duration"
 	HandlerMetadataParamTypeFloat32  HandlerMetadataParamType = "float32"
+	HandlerMetadataParamTypeUnknown  HandlerMetadataParamType = "unknown"
 )
 
 type HandlerMetadataParam struct {
