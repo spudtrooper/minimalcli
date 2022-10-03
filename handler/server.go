@@ -114,35 +114,54 @@ func genEdit(title, route, prefix, indexName string, routesToHandlers map[string
 				{{range $i, $f := .Forms}}
 					{{if eq $f.Type "string"}}
 						<div class="col-md">
-							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>string</code></label>
+							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>string</code>
+							{{if $f.Required}} (required){{end}}
+							</label>
 							<input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
 								{{if $f.Required}}required{{end}}
 							>
 					{{end}}
 					{{if eq $f.Type "duration"}}
 						<div class="col-md">
-							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>time.Duration</code></label>
+							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>time.Duration</code>
+							{{if $f.Required}} (required){{end}}
+							</label>
+							<input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
+								{{if $f.Required}}required{{end}}
+							>
+					{{end}}					
+					{{if eq $f.Type "duration"}}
+						<div class="col-md">
+							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>time.Time</code>
+							{{if $f.Required}} (required){{end}}
+							</label>
 							<input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
 								{{if $f.Required}}required{{end}}
 							>
 					{{end}}					
 					{{if eq $f.Type "int"}}
 						<div class="col-md">
-							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>int</code></label>
+							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>int</code>
+							{{if $f.Required}} (required){{end}}
+							</label>
 							<input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
 								{{if $f.Required}}required{{end}}
 							>
 					{{end}}
 					{{if eq $f.Type "float32"}}
 						<div class="col-md">
-							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>float32</code></label>
+							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>float32</code>
+							{{if $f.Required}} (required){{end}}
+							</label>
 							<input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
 								{{if $f.Required}}required{{end}}
 							>
 					{{end}}
 					{{if eq $f.Type "bool"}}
 						<div class="col-md">
-							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>bool</code></label>
+							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>bool</code>
+							{{if $f.Required}} (required){{end}}
+							</label>
 							<select name="{{$f.Name}}" class="form-select" id="validationCustom{{$i}}">
 								<option selected disabled value="">Choose...</option>
 								<option></option>

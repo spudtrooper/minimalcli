@@ -1,38 +1,54 @@
 package handler
 
 import (
+	"log"
 	"reflect"
 	"strings"
 
 	"github.com/iancoleman/strcase"
+	"github.com/pkg/errors"
 	"github.com/spudtrooper/goutil/or"
 )
 
-type CtorFn func() interface{}
+type CtorFn func() any
+type ReflectHandlerFn func(ip any) (any, error)
 
 func NewHandlerFromStruct(name string, ctor CtorFn, optss ...NewHandlerOption) Handler {
 	opts := MakeNewHandlerOptions(optss...)
-	fn := fnFromStruct(ctor)
-	metadata := metadataFromStruct(ctor)
+	fields := exportedFields(ctor)
+	metadata := metadataFromStruct(fields)
+	fn := fnFromStruct(ctor, fields)
+	cliOnly := opts.CliOnly()
 	method := or.String(opts.Method(), "GET")
 	return &handler{
 		name:     name,
 		fn:       fn,
-		cliOnly:  opts.CliOnly(),
+		cliOnly:  cliOnly,
 		metadata: metadata,
 		method:   method,
 	}
 }
 
-func metadataFromStruct(ctor CtorFn) HandlerMetadata {
-	return HandlerMetadata{
-		Params: paramsFromStruct(ctor),
+func NewHandlerFromParams(name string, hf ReflectHandlerFn, pCtor CtorFn, optss ...NewHandlerOption) Handler {
+	opts := MakeNewHandlerOptions(optss...)
+	fields := exportedFields(pCtor)
+	metadata := metadataFromStruct(fields)
+	fn := fnFromStructAndParams(hf, pCtor, fields)
+	cliOnly := opts.CliOnly()
+	method := or.String(opts.Method(), "GET")
+	return &handler{
+		name:     name,
+		fn:       fn,
+		cliOnly:  cliOnly,
+		metadata: metadata,
+		method:   method,
 	}
 }
 
-func toSnakeCase(s string) string {
-	return strcase.ToSnake(s)
-	// return strcase.ToLowerCamel(s)
+func metadataFromStruct(fs []reflect.StructField) HandlerMetadata {
+	return HandlerMetadata{
+		Params: paramsFromStruct(fs),
+	}
 }
 
 func typeFromKind(k reflect.Kind) HandlerMetadataParamType {
@@ -49,91 +65,160 @@ func typeFromKind(k reflect.Kind) HandlerMetadataParamType {
 		if k.String() == "time.Duration" {
 			return HandlerMetadataParamTypeDuration
 		}
+		if k.String() == "time.Time" {
+			return HandlerMetadataParamTypeTime
+		}
 	default:
 		return HandlerMetadataParamTypeUnknown
 	}
 	return HandlerMetadataParamTypeUnknown
 }
 
-func paramsFromStruct(ctor CtorFn) []HandlerMetadataParam {
-	var params []HandlerMetadataParam
+func exportedFields(ctor CtorFn) []reflect.StructField {
+	var fs []reflect.StructField
 	o := ctor()
 	typ := reflect.TypeOf(o)
 	for i := 0; i < typ.NumField(); i++ {
 		f := typ.Field(i)
-		if !f.IsExported() {
-			continue
+		if f.IsExported() {
+			fs = append(fs, f)
 		}
+	}
+	return fs
+}
+
+func paramsFromStruct(fs []reflect.StructField) []HandlerMetadataParam {
+	var params []HandlerMetadataParam
+	for _, f := range fs {
+		name, required := findFieldMetadata(f)
 		params = append(params, HandlerMetadataParam{
-			Name: toSnakeCase(f.Name),
-			Type: typeFromKind(f.Type.Kind()),
+			Name:     name,
+			Type:     typeFromKind(f.Type.Kind()),
+			Required: required,
 		})
 	}
 	return params
-
 }
 
-func findJsonName(f reflect.StructField) string {
-	if jt, ok := f.Tag.Lookup("json"); ok {
-		return strings.Split(jt, ",")[0]
+func findFieldMetadata(f reflect.StructField) (name string, required bool) {
+	if t, ok := f.Tag.Lookup("required"); ok {
+		val := strings.Split(t, ",")[0]
+		required = strings.EqualFold(val, "true") || strings.EqualFold(val, "1")
 	}
-	return toSnakeCase(f.Name)
+	if t, ok := f.Tag.Lookup("json"); ok {
+		name = strings.Split(t, ",")[0]
+	} else {
+		name = strcase.ToSnake(f.Name)
+	}
+	return
 }
 
-func fnFromStruct(ctor CtorFn) HandlerFn {
-	return func(ctx EvalContext) (interface{}, error) {
-		o := ctor()
-		typ := reflect.TypeOf(o)
+func setValuesOnParams(ctx EvalContext, pCtor CtorFn, fs []reflect.StructField) (interface{}, bool, error) {
+	params := pCtor()
 
-		// https://stackoverflow.com/questions/63421976/panic-reflect-call-of-reflect-value-fieldbyname-on-interface-value
-		v := reflect.ValueOf(&o).Elem()
-		tmp := reflect.New(v.Elem().Type()).Elem()
-		tmp.Set(v.Elem())
+	// https://stackoverflow.com/questions/63421976/panic-reflect-call-of-reflect-value-fieldbyname-on-interface-value
+	v := reflect.ValueOf(&params).Elem()
+	tmp := reflect.New(v.Elem().Type()).Elem()
+	tmp.Set(v.Elem())
 
-		for i := 0; i < tmp.NumField(); i++ {
-			if f := typ.Field(i); !f.IsExported() {
-				continue
-			}
-			f := tmp.FieldByName(typ.Field(i).Name)
-			if !f.CanSet() || !f.IsValid() {
-				continue
-			}
-			nameInCtx := findJsonName(typ.Field(i))
-			switch f.Kind() {
-			case reflect.String:
-				f.SetString(ctx.String(nameInCtx))
-			case reflect.Int:
-				f.SetInt(int64(ctx.Int(nameInCtx)))
-			case reflect.Bool:
-				f.SetBool(ctx.Bool(nameInCtx))
-			case reflect.Float32:
-				f.SetFloat(float64(ctx.Float32(nameInCtx)))
-			case reflect.Struct:
-				if f.Type().String() == "time.Duration" {
-					f.Set(reflect.ValueOf(ctx.Duration(nameInCtx)))
-				}
-			default:
-				panic("unkown type")
-			}
+	shouldHandle := true
+	for _, sf := range fs {
+		f := tmp.FieldByName(sf.Name)
+		if !f.CanSet() {
+			log.Printf("ERROR: !CanSet: %+v", f)
+			continue
 		}
-		v.Set(tmp)
+		if !f.IsValid() {
+			log.Printf("ERROR: !IsValid: %+v", f)
+			continue
+		}
+		nameInCtx, required := findFieldMetadata(sf)
+		switch f.Kind() {
+		case reflect.String:
+			if required {
+				s, ok := ctx.MustString(nameInCtx)
+				if !ok {
+					shouldHandle = false
+					break
+				}
+				f.SetString(s)
+			} else {
+				f.SetString(ctx.String(nameInCtx))
+			}
+		case reflect.Int:
+			f.SetInt(int64(ctx.Int(nameInCtx)))
+		case reflect.Bool:
+			f.SetBool(ctx.Bool(nameInCtx))
+		case reflect.Float32:
+			f.SetFloat(float64(ctx.Float32(nameInCtx)))
+		case reflect.Struct:
+			if f.Type().String() == "time.Duration" {
+				f.Set(reflect.ValueOf(ctx.Duration(nameInCtx)))
+			}
+			if f.Type().String() == "time.Time" {
+				t, err := ctx.Time(nameInCtx)
+				if err != nil {
+					return nil, false, errors.Errorf("evaluating time for %q: %v", nameInCtx, err)
+				}
+				f.Set(reflect.ValueOf(t))
+			}
+		default:
+			panic("unkown type")
+		}
+	}
+	v.Set(tmp)
+
+	return params, shouldHandle, nil
+}
+
+func fnFromStructAndParams(hf ReflectHandlerFn, pCtor CtorFn, fs []reflect.StructField) HandlerFn {
+	return func(ctx EvalContext) (interface{}, error) {
+		params, shouldHandle, err := setValuesOnParams(ctx, pCtor, fs)
+		if err != nil {
+			return nil, err
+		}
+
+		if !shouldHandle {
+			return nil, nil
+		}
+
+		res, err := hf(params)
+
+		return res, err
+	}
+}
+
+func fnFromStruct(ctor CtorFn, fs []reflect.StructField) HandlerFn {
+	return func(ctx EvalContext) (interface{}, error) {
+		o, shouldHandle, err := setValuesOnParams(ctx, ctor, fs)
+		if err != nil {
+			return nil, err
+		}
+
+		if !shouldHandle {
+			return nil, nil
+		}
+
+		// Looking for Handle() (interface{}, error)
 
 		handle := reflect.ValueOf(&o).Elem().Elem().MethodByName("Handle")
 		if !handle.IsValid() {
-			panic("invalid Handle method")
+			return nil, errors.Errorf("Handle method isn't valid")
 		}
+
 		vals := handle.Call([]reflect.Value{})
 		if len(vals) != 2 {
-			panic("expecting 2 values")
+			return nil, errors.Errorf(
+				"expecting 2 return values from Handle and got %d", len(vals))
 		}
 		var res interface{}
-		var err error
 		if !vals[0].IsNil() {
 			res = vals[0].Interface()
 		}
 		if !vals[1].IsNil() {
 			err = vals[1].Interface().(error)
 		}
+
 		return res, err
 	}
 }

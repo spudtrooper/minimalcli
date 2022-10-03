@@ -15,6 +15,7 @@ type EvalContext interface {
 	Int(name string) int
 	Float32(name string) float32
 	Duration(name string) time.Duration
+	Time(name string) (time.Time, error)
 }
 
 type cliEvalContext struct {
@@ -24,6 +25,7 @@ type cliEvalContext struct {
 	intFlags     map[string]*int
 	float32Flags map[string]*float32
 	durFlags     map[string]*time.Duration
+	timeFlags    map[string]*time.Time
 }
 
 func (c *cliEvalContext) Context() context.Context { return c.ctx }
@@ -68,6 +70,15 @@ func (c *cliEvalContext) Duration(name string) time.Duration {
 	return *flag
 }
 
+func (c *cliEvalContext) Time(name string) (time.Time, error) {
+	flag, ok := c.timeFlags[name]
+	if !ok {
+		var zero time.Time
+		return zero, nil
+	}
+	return *flag, nil
+}
+
 func (c *cliEvalContext) Float32(name string) float32 {
 	flag, ok := c.float32Flags[name]
 	if !ok {
@@ -94,4 +105,15 @@ func (c *serverEvalContext) MustString(name string) (string, bool) {
 
 func (c *serverEvalContext) Duration(name string) time.Duration {
 	return time.Duration(getIntURLParam(c.req, name))
+}
+
+func (c *serverEvalContext) Time(name string) (time.Time, error) {
+	s := getStringURLParam(c.req, name)
+	if s == "" {
+		var t time.Time
+		return t, nil
+	}
+	// TODO: This isn't going to work, but keeping for now to maintain the interface
+	res, err := time.Parse("2006-01-02 15:04", s)
+	return res, err
 }
