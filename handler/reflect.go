@@ -7,10 +7,6 @@ import (
 	"github.com/spudtrooper/goutil/or"
 )
 
-type ReflectHandler interface {
-	Handle() (interface{}, error)
-}
-
 type CtorFn func() interface{}
 
 func NewHandlerFromStruct(name string, ctor CtorFn, optss ...NewHandlerOption) Handler {
