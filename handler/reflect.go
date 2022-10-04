@@ -10,26 +10,10 @@ import (
 	"github.com/spudtrooper/goutil/or"
 )
 
-type CtorFn func() any
-type ReflectHandlerFn func(ip any) (any, error)
+type ctorFn func() any
+type handlerFn func(ip any) (any, error)
 
-func NewHandlerFromStruct(name string, ctor CtorFn, optss ...NewHandlerOption) Handler {
-	opts := MakeNewHandlerOptions(optss...)
-	fields := exportedFields(ctor)
-	metadata := metadataFromStruct(fields)
-	fn := fnFromStruct(ctor, fields)
-	cliOnly := opts.CliOnly()
-	method := or.String(opts.Method(), "GET")
-	return &handler{
-		name:     name,
-		fn:       fn,
-		cliOnly:  cliOnly,
-		metadata: metadata,
-		method:   method,
-	}
-}
-
-func NewHandlerFromParams(name string, hf ReflectHandlerFn, pCtor CtorFn, optss ...NewHandlerOption) Handler {
+func NewHandlerFromParams(name string, hf handlerFn, pCtor ctorFn, optss ...NewHandlerOption) Handler {
 	opts := MakeNewHandlerOptions(optss...)
 	fields := exportedFields(pCtor)
 	metadata := metadataFromStruct(fields)
@@ -74,7 +58,7 @@ func typeFromKind(k reflect.Kind) HandlerMetadataParamType {
 	return HandlerMetadataParamTypeUnknown
 }
 
-func exportedFields(ctor CtorFn) []reflect.StructField {
+func exportedFields(ctor ctorFn) []reflect.StructField {
 	var fs []reflect.StructField
 	o := ctor()
 	typ := reflect.TypeOf(o)
@@ -113,7 +97,7 @@ func findFieldMetadata(f reflect.StructField) (name string, required bool) {
 	return
 }
 
-func setValuesOnParams(ctx EvalContext, pCtor CtorFn, fs []reflect.StructField) (interface{}, bool, error) {
+func setValuesOnParams(ctx EvalContext, pCtor ctorFn, fs []reflect.StructField) (interface{}, bool, error) {
 	params := pCtor()
 
 	// https://stackoverflow.com/questions/63421976/panic-reflect-call-of-reflect-value-fieldbyname-on-interface-value
@@ -171,7 +155,7 @@ func setValuesOnParams(ctx EvalContext, pCtor CtorFn, fs []reflect.StructField) 
 	return params, shouldHandle, nil
 }
 
-func fnFromStructAndParams(hf ReflectHandlerFn, pCtor CtorFn, fs []reflect.StructField) HandlerFn {
+func fnFromStructAndParams(hf handlerFn, pCtor ctorFn, fs []reflect.StructField) HandlerFn {
 	return func(ctx EvalContext) (interface{}, error) {
 		params, shouldHandle, err := setValuesOnParams(ctx, pCtor, fs)
 		if err != nil {
@@ -183,41 +167,6 @@ func fnFromStructAndParams(hf ReflectHandlerFn, pCtor CtorFn, fs []reflect.Struc
 		}
 
 		res, err := hf(params)
-
-		return res, err
-	}
-}
-
-func fnFromStruct(ctor CtorFn, fs []reflect.StructField) HandlerFn {
-	return func(ctx EvalContext) (interface{}, error) {
-		o, shouldHandle, err := setValuesOnParams(ctx, ctor, fs)
-		if err != nil {
-			return nil, err
-		}
-
-		if !shouldHandle {
-			return nil, nil
-		}
-
-		// Looking for Handle() (interface{}, error)
-
-		handle := reflect.ValueOf(&o).Elem().Elem().MethodByName("Handle")
-		if !handle.IsValid() {
-			return nil, errors.Errorf("Handle method isn't valid")
-		}
-
-		vals := handle.Call([]reflect.Value{})
-		if len(vals) != 2 {
-			return nil, errors.Errorf(
-				"expecting 2 return values from Handle and got %d", len(vals))
-		}
-		var res interface{}
-		if !vals[0].IsNil() {
-			res = vals[0].Interface()
-		}
-		if !vals[1].IsNil() {
-			err = vals[1].Interface().(error)
-		}
 
 		return res, err
 	}
