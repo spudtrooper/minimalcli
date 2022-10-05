@@ -14,13 +14,14 @@ import (
 	"github.com/spudtrooper/goutil/or"
 )
 
-//go:generate genopts --function CreateHandler indexTitle:string prefix:string indexName:string editName:string
+//go:generate genopts --function CreateHandler indexTitle:string prefix:string indexName:string editName:string footerHTML:string
 func CreateHandler(ctx context.Context, hs []Handler, optss ...CreateHandlerOption) *http.ServeMux {
 	opts := MakeCreateHandlerOptions(optss...)
 	indexTitle := or.String(opts.IndexTitle(), "API")
 	indexName := opts.IndexName()
 	editName := or.String(opts.EditName(), "_edit")
 	prefix := or.String(opts.Prefix(), "api")
+	footerHTML := opts.FooterHTML()
 
 	mux := http.NewServeMux()
 
@@ -45,7 +46,7 @@ func CreateHandler(ctx context.Context, hs []Handler, optss ...CreateHandlerOpti
 
 	handleFunc(fmt.Sprintf("/%s/%s", prefix, indexName), func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		s, err := genIndex(indexTitle, prefix, editName, routesToHandlers)
+		s, err := genIndex(indexTitle, prefix, editName, routesToHandlers, footerHTML)
 		if err != nil {
 			respondWithError(w, req, err)
 			return
@@ -229,7 +230,7 @@ func genEdit(title, route, prefix, indexName string, routesToHandlers map[string
 	return buf.String(), nil
 }
 
-func genIndex(title, prefix, editName string, routesToHandlers map[string]*handler) (string, error) {
+func genIndex(title, prefix, editName string, routesToHandlers map[string]*handler, footerHTML string) (string, error) {
 	const t = `
 {{$prefix := .Prefix}}
 {{$editName := .EditName}}
@@ -263,6 +264,9 @@ func genIndex(title, prefix, editName string, routesToHandlers map[string]*handl
 					</li>
 				{{end}}
 			</ul>
+			<div>
+				{{.FooterHTML}}
+			</div>
 		</div>
 	</body>
 </html>
@@ -284,15 +288,17 @@ func genIndex(title, prefix, editName string, routesToHandlers map[string]*handl
 		})
 	}
 	var data = struct {
-		Title    string
-		Prefix   string
-		EditName string
-		Routes   []route
+		Title      string
+		Prefix     string
+		EditName   string
+		Routes     []route
+		FooterHTML string
 	}{
-		Title:    title,
-		Prefix:   prefix,
-		EditName: editName,
-		Routes:   routes,
+		Title:      title,
+		Prefix:     prefix,
+		EditName:   editName,
+		Routes:     routes,
+		FooterHTML: footerHTML,
 	}
 
 	var buf bytes.Buffer

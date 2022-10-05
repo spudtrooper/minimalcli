@@ -12,6 +12,8 @@ type CreateHandlerOptions interface {
 	HasIndexName() bool
 	EditName() string
 	HasEditName() bool
+	FooterHTML() string
+	HasFooterHTML() bool
 }
 
 func CreateHandlerIndexTitle(indexTitle string) CreateHandlerOption {
@@ -78,6 +80,22 @@ func CreateHandlerEditNameFlag(editName *string) CreateHandlerOption {
 	}
 }
 
+func CreateHandlerFooterHTML(footerHTML string) CreateHandlerOption {
+	return func(opts *createHandlerOptionImpl) {
+		opts.has_footerHTML = true
+		opts.footerHTML = footerHTML
+	}
+}
+func CreateHandlerFooterHTMLFlag(footerHTML *string) CreateHandlerOption {
+	return func(opts *createHandlerOptionImpl) {
+		if footerHTML == nil {
+			return
+		}
+		opts.has_footerHTML = true
+		opts.footerHTML = *footerHTML
+	}
+}
+
 type createHandlerOptionImpl struct {
 	indexTitle     string
 	has_indexTitle bool
@@ -87,6 +105,8 @@ type createHandlerOptionImpl struct {
 	has_indexName  bool
 	editName       string
 	has_editName   bool
+	footerHTML     string
+	has_footerHTML bool
 }
 
 func (c *createHandlerOptionImpl) IndexTitle() string  { return c.indexTitle }
@@ -97,6 +117,8 @@ func (c *createHandlerOptionImpl) IndexName() string   { return c.indexName }
 func (c *createHandlerOptionImpl) HasIndexName() bool  { return c.has_indexName }
 func (c *createHandlerOptionImpl) EditName() string    { return c.editName }
 func (c *createHandlerOptionImpl) HasEditName() bool   { return c.has_editName }
+func (c *createHandlerOptionImpl) FooterHTML() string  { return c.footerHTML }
+func (c *createHandlerOptionImpl) HasFooterHTML() bool { return c.has_footerHTML }
 
 func makeCreateHandlerOptionImpl(opts ...CreateHandlerOption) *createHandlerOptionImpl {
 	res := &createHandlerOptionImpl{}
