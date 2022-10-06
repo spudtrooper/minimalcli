@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"log"
 	"reflect"
 	"strings"
@@ -11,7 +12,7 @@ import (
 )
 
 type ctorFn func() any
-type handlerFn func(ip any) (any, error)
+type handlerFn func(ctx context.Context, ip any) (any, error)
 
 func NewHandlerFromParams(name string, hf handlerFn, pCtor ctorFn, optss ...NewHandlerOption) Handler {
 	opts := MakeNewHandlerOptions(optss...)
@@ -166,7 +167,7 @@ func fnFromStructAndParams(hf handlerFn, pCtor ctorFn, fs []reflect.StructField)
 			return nil, nil
 		}
 
-		res, err := hf(params)
+		res, err := hf(ctx.Context(), params)
 
 		return res, err
 	}

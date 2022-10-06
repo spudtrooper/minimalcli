@@ -14,6 +14,12 @@ type CreateHandlerOptions interface {
 	HasEditName() bool
 	FooterHTML() string
 	HasFooterHTML() bool
+	SourceLinks() bool
+	HasSourceLinks() bool
+	HandlersFiles() []string
+	HasHandlersFiles() bool
+	SourceLinkURIRoot() string
+	HasSourceLinkURIRoot() bool
 }
 
 func CreateHandlerIndexTitle(indexTitle string) CreateHandlerOption {
@@ -96,29 +102,89 @@ func CreateHandlerFooterHTMLFlag(footerHTML *string) CreateHandlerOption {
 	}
 }
 
-type createHandlerOptionImpl struct {
-	indexTitle     string
-	has_indexTitle bool
-	prefix         string
-	has_prefix     bool
-	indexName      string
-	has_indexName  bool
-	editName       string
-	has_editName   bool
-	footerHTML     string
-	has_footerHTML bool
+func CreateHandlerSourceLinks(sourceLinks bool) CreateHandlerOption {
+	return func(opts *createHandlerOptionImpl) {
+		opts.has_sourceLinks = true
+		opts.sourceLinks = sourceLinks
+	}
+}
+func CreateHandlerSourceLinksFlag(sourceLinks *bool) CreateHandlerOption {
+	return func(opts *createHandlerOptionImpl) {
+		if sourceLinks == nil {
+			return
+		}
+		opts.has_sourceLinks = true
+		opts.sourceLinks = *sourceLinks
+	}
 }
 
-func (c *createHandlerOptionImpl) IndexTitle() string  { return c.indexTitle }
-func (c *createHandlerOptionImpl) HasIndexTitle() bool { return c.has_indexTitle }
-func (c *createHandlerOptionImpl) Prefix() string      { return c.prefix }
-func (c *createHandlerOptionImpl) HasPrefix() bool     { return c.has_prefix }
-func (c *createHandlerOptionImpl) IndexName() string   { return c.indexName }
-func (c *createHandlerOptionImpl) HasIndexName() bool  { return c.has_indexName }
-func (c *createHandlerOptionImpl) EditName() string    { return c.editName }
-func (c *createHandlerOptionImpl) HasEditName() bool   { return c.has_editName }
-func (c *createHandlerOptionImpl) FooterHTML() string  { return c.footerHTML }
-func (c *createHandlerOptionImpl) HasFooterHTML() bool { return c.has_footerHTML }
+func CreateHandlerHandlersFiles(handlersFiles []string) CreateHandlerOption {
+	return func(opts *createHandlerOptionImpl) {
+		opts.has_handlersFiles = true
+		opts.handlersFiles = handlersFiles
+	}
+}
+func CreateHandlerHandlersFilesFlag(handlersFiles *[]string) CreateHandlerOption {
+	return func(opts *createHandlerOptionImpl) {
+		if handlersFiles == nil {
+			return
+		}
+		opts.has_handlersFiles = true
+		opts.handlersFiles = *handlersFiles
+	}
+}
+
+func CreateHandlerSourceLinkURIRoot(sourceLinkURIRoot string) CreateHandlerOption {
+	return func(opts *createHandlerOptionImpl) {
+		opts.has_sourceLinkURIRoot = true
+		opts.sourceLinkURIRoot = sourceLinkURIRoot
+	}
+}
+func CreateHandlerSourceLinkURIRootFlag(sourceLinkURIRoot *string) CreateHandlerOption {
+	return func(opts *createHandlerOptionImpl) {
+		if sourceLinkURIRoot == nil {
+			return
+		}
+		opts.has_sourceLinkURIRoot = true
+		opts.sourceLinkURIRoot = *sourceLinkURIRoot
+	}
+}
+
+type createHandlerOptionImpl struct {
+	indexTitle            string
+	has_indexTitle        bool
+	prefix                string
+	has_prefix            bool
+	indexName             string
+	has_indexName         bool
+	editName              string
+	has_editName          bool
+	footerHTML            string
+	has_footerHTML        bool
+	sourceLinks           bool
+	has_sourceLinks       bool
+	handlersFiles         []string
+	has_handlersFiles     bool
+	sourceLinkURIRoot     string
+	has_sourceLinkURIRoot bool
+}
+
+func (c *createHandlerOptionImpl) IndexTitle() string         { return c.indexTitle }
+func (c *createHandlerOptionImpl) HasIndexTitle() bool        { return c.has_indexTitle }
+func (c *createHandlerOptionImpl) Prefix() string             { return c.prefix }
+func (c *createHandlerOptionImpl) HasPrefix() bool            { return c.has_prefix }
+func (c *createHandlerOptionImpl) IndexName() string          { return c.indexName }
+func (c *createHandlerOptionImpl) HasIndexName() bool         { return c.has_indexName }
+func (c *createHandlerOptionImpl) EditName() string           { return c.editName }
+func (c *createHandlerOptionImpl) HasEditName() bool          { return c.has_editName }
+func (c *createHandlerOptionImpl) FooterHTML() string         { return c.footerHTML }
+func (c *createHandlerOptionImpl) HasFooterHTML() bool        { return c.has_footerHTML }
+func (c *createHandlerOptionImpl) SourceLinks() bool          { return c.sourceLinks }
+func (c *createHandlerOptionImpl) HasSourceLinks() bool       { return c.has_sourceLinks }
+func (c *createHandlerOptionImpl) HandlersFiles() []string    { return c.handlersFiles }
+func (c *createHandlerOptionImpl) HasHandlersFiles() bool     { return c.has_handlersFiles }
+func (c *createHandlerOptionImpl) SourceLinkURIRoot() string  { return c.sourceLinkURIRoot }
+func (c *createHandlerOptionImpl) HasSourceLinkURIRoot() bool { return c.has_sourceLinkURIRoot }
 
 func makeCreateHandlerOptionImpl(opts ...CreateHandlerOption) *createHandlerOptionImpl {
 	res := &createHandlerOptionImpl{}
