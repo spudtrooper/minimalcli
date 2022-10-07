@@ -14,9 +14,13 @@ import (
 type ctorFn func() any
 type handlerFn func(ctx context.Context, ip any) (any, error)
 
-func NewHandlerFromParams(name string, hf handlerFn, pCtor ctorFn, optss ...NewHandlerOption) Handler {
+func NewHandlerFromParams(name string, hf handlerFn, p any, optss ...NewHandlerOption) Handler {
+	var pCtor ctorFn = func() any {
+		res := p
+		return res
+	}
 	opts := MakeNewHandlerOptions(optss...)
-	fields := exportedFields(pCtor)
+	fields := exportedFields(p)
 	metadata := metadataFromStruct(fields)
 	fn := fnFromStructAndParams(hf, pCtor, fields)
 	cliOnly := opts.CliOnly()
@@ -59,9 +63,8 @@ func typeFromKind(k reflect.Kind) HandlerMetadataParamType {
 	return HandlerMetadataParamTypeUnknown
 }
 
-func exportedFields(ctor ctorFn) []reflect.StructField {
+func exportedFields(o any) []reflect.StructField {
 	var fs []reflect.StructField
-	o := ctor()
 	typ := reflect.TypeOf(o)
 	for i := 0; i < typ.NumField(); i++ {
 		f := typ.Field(i)
