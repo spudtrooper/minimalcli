@@ -14,7 +14,7 @@ import (
 type ctorFn func() any
 type handlerFn func(ctx context.Context, ip any) (any, error)
 
-func NewHandlerFromParams(name string, hf handlerFn, p any, optss ...NewHandlerOption) Handler {
+func NewHandler(name string, hf handlerFn, p any, optss ...NewHandlerOption) Handler {
 	var pCtor ctorFn = func() any {
 		res := p
 		return res

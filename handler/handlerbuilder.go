@@ -5,8 +5,8 @@ type handlerBuilder struct {
 }
 
 type HandlerBuilder interface {
-	NewHandler(name string, fn HandlerFn, optss ...NewHandlerOption)
-	NewHandlerFromParams(name string, hf handlerFn, paramsPrototype any, optss ...NewHandlerOption)
+	NewHandlerFromHandlerFn(name string, fn HandlerFn, optss ...NewHandlerOption)
+	NewHandler(name string, hf handlerFn, paramsPrototype any, optss ...NewHandlerOption)
 	Build() []Handler
 }
 
@@ -14,12 +14,12 @@ func NewHandlerBuilder() HandlerBuilder {
 	return &handlerBuilder{}
 }
 
-func (h *handlerBuilder) NewHandlerFromParams(name string, hf handlerFn, paramsPrototype any, optss ...NewHandlerOption) {
-	h.handlers = append(h.handlers, NewHandlerFromParams(name, hf, paramsPrototype, optss...))
+func (h *handlerBuilder) NewHandler(name string, hf handlerFn, paramsPrototype any, optss ...NewHandlerOption) {
+	h.handlers = append(h.handlers, NewHandler(name, hf, paramsPrototype, optss...))
 }
 
-func (h *handlerBuilder) NewHandler(name string, fn HandlerFn, optss ...NewHandlerOption) {
-	h.handlers = append(h.handlers, NewHandler(name, fn, optss...))
+func (h *handlerBuilder) NewHandlerFromHandlerFn(name string, fn HandlerFn, optss ...NewHandlerOption) {
+	h.handlers = append(h.handlers, NewHandlerFromHandlerFn(name, fn, optss...))
 }
 
 func (h *handlerBuilder) Build() []Handler {

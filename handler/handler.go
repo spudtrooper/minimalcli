@@ -42,7 +42,7 @@ type HandlerMetadata struct {
 func (m HandlerMetadata) Empty() bool { return len(m.Params) == 0 }
 
 //go:generate genopts --function NewHandler cliOnly metadata:HandlerMetadata method:string
-func NewHandler(name string, fn HandlerFn, optss ...NewHandlerOption) Handler {
+func NewHandlerFromHandlerFn(name string, fn HandlerFn, optss ...NewHandlerOption) Handler {
 	opts := MakeNewHandlerOptions(optss...)
 	return &handler{
 		name:     name,

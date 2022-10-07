@@ -23,6 +23,9 @@ type sourceLocation struct {
 	line int
 }
 
+// TODO: github-specfic hash
+func (s sourceLocation) URI() string { return fmt.Sprintf("%s#L%d", s.uri, s.line) }
+
 //go:generate genopts --function CreateHandler indexTitle:string prefix:string indexName:string editName:string footerHTML:string sourceLinks handlersFiles:[]string sourceLinkURIRoot:string
 func CreateHandler(ctx context.Context, hs []Handler, optss ...CreateHandlerOption) (*http.ServeMux, error) {
 	opts := MakeCreateHandlerOptions(optss...)
@@ -118,8 +121,8 @@ func handle(ctx context.Context, h *handler, w http.ResponseWriter, req *http.Re
 }
 
 var (
-	// NewHandlerFromParams("SaveRawRestaurantDetailsFromID"
-	newHandlerFromParamsRE = regexp.MustCompile(`NewHandlerFromParams\("([^"]+)"`)
+	// NewHandlerFromHandlerFn("SaveRawRestaurantDetailsFromID"
+	newHandlerFromHandlerFnRE = regexp.MustCompile(`NewHandlerFromHandlerFn\("([^"]+)"`)
 	// NewHandler("AddRestaurantsToSearchByURIs"
 	newHandlerRE = regexp.MustCompile(`NewHandler\("([^"]+)"`)
 )
@@ -132,7 +135,7 @@ func findHandlerSourceLocations(handlersFiles []string, sourceLinkURIRoot string
 			return nil, err
 		}
 		for i, line := range strings.Split(string(c), "\n") {
-			if m := newHandlerFromParamsRE.FindStringSubmatch(line); len(m) == 2 {
+			if m := newHandlerFromHandlerFnRE.FindStringSubmatch(line); len(m) == 2 {
 				h := m[1]
 				uri := path.Join(sourceLinkURIRoot, f)
 				loc := sourceLocation{uri, i + 1}
@@ -216,8 +219,7 @@ func genIndex(title, prefix, editName string, routesToHandlers map[string]*handl
 		}
 		h := routesToHandlers[r]
 		if s, ok := handlerToSource[h.name]; ok {
-			sourceURI := fmt.Sprintf("%s#L%d", s.uri, s.line)
-			route.SourceURI = sourceURI
+			route.SourceURI = s.URI()
 		}
 		routes = append(routes, route)
 	}
