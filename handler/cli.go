@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	goutiljson "github.com/spudtrooper/goutil/json"
+	"github.com/spudtrooper/goutil/json"
 	minimalcli "github.com/spudtrooper/minimalcli/app"
 )
 
@@ -48,7 +48,7 @@ func CreateCLI(a *cliAdapter, hs ...Handler) *minimalcli.App {
 			if err != nil {
 				return err
 			}
-			fmt.Printf("%s: %s", h.name, goutiljson.MustColorMarshal(res))
+			fmt.Printf("%s: %s", h.name, json.MustColorMarshal(res))
 			return nil
 		})
 	}

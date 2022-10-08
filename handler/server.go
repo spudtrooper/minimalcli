@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"context"
+	_ "embed"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -49,8 +50,6 @@ func CreateHandler(ctx context.Context, hs []Handler, optss ...CreateHandlerOpti
 
 	mux := http.NewServeMux()
 
-	log.Printf("Initializing server...")
-
 	handleFunc := func(route string, fn func(w http.ResponseWriter, req *http.Request)) {
 		log.Printf("adding route %s", route)
 		mux.HandleFunc(route, fn)
@@ -80,29 +79,41 @@ func CreateHandler(ctx context.Context, hs []Handler, optss ...CreateHandlerOpti
 		}
 	}
 
-	handleFunc(fmt.Sprintf("/%s/%s", prefix, indexName), func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		s, err := genIndex(indexTitle, prefix, editName, routesToHandlers, footerHTML, handlerToSource, formatHTML)
+	{
+		index, err := genIndex(indexTitle, prefix, editName, routesToHandlers, footerHTML, handlerToSource, formatHTML)
 		if err != nil {
-			respondWithError(w, req, err)
-			return
+			return nil, err
 		}
-		fmt.Fprint(w, s)
-	})
+		handleFunc(fmt.Sprintf("/%s/%s", prefix, indexName), func(w http.ResponseWriter, req *http.Request) {
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			fmt.Fprint(w, index)
+		})
+	}
 
-	handleFunc(fmt.Sprintf("/%s/%s", prefix, editName), func(w http.ResponseWriter, req *http.Request) {
-		route, ok := getStringURLParamOrDie(w, req, "route")
-		if !ok {
-			return
+	{
+		routesToEdits := map[string]string{}
+		for route, h := range routesToHandlers {
+			edit, err := genEdit(indexTitle, route, prefix, indexName, h, formatHTML)
+			if err != nil {
+				return nil, err
+			}
+			routesToEdits[route] = edit
+
 		}
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		s, err := genEdit(indexTitle, route, prefix, indexName, routesToHandlers, formatHTML)
-		if err != nil {
-			respondWithError(w, req, err)
-			return
-		}
-		fmt.Fprint(w, s)
-	})
+		handleFunc(fmt.Sprintf("/%s/%s", prefix, editName), func(w http.ResponseWriter, req *http.Request) {
+			route, ok := getStringURLParamOrDie(w, req, "route")
+			if !ok {
+				return
+			}
+			edit, ok := routesToEdits[route]
+			if !ok {
+				respondWithErrorString(w, req, "no edit found for route %s", route)
+				return
+			}
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			fmt.Fprint(w, edit)
+		})
+	}
 
 	return mux, nil
 }
@@ -159,50 +170,10 @@ func findHandlerSourceLocations(handlersFiles []string, sourceLinkURIRoot string
 	return res, nil
 }
 
+//go:embed tmpl/index.html
+var indexHTMLTemplate string
+
 func genIndex(title, prefix, editName string, routesToHandlers map[string]*handler, footerHTML string, handlerToSource map[string]sourceLocation, format bool) (string, error) {
-	const t = `
-{{$prefix := .Prefix}}
-{{$editName := .EditName}}
-<!DOCTYPE html>
-<html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-
-		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
-			integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-			integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
-		</script>
-
-		<link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png">
-		<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32x32.png">
-		<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png">
-		<link rel="manifest" href="/img/site.webmanifest">	
-	</head>
-	<body>
-	<div class="container-fluid">
-		<h1>{{.Title}}</h1>
-			<ul>
-				{{- range .Routes}}
-					<li>
-						<a href="{{.Route}}">{{.Route}}</a>					
-						{{- if .HasParams}}
-							(<a href="/{{$prefix}}/{{$editName}}?route={{.Route}}">edit</a>)
-						{{- end}}
-						{{- if ne .SourceURI ""}}
-							[<a target="_" href="{{.SourceURI}}">source</a>]
-						{{- end}}
-					</li>
-				{{- end}}
-			</ul>
-			<div>
-				{{.FooterHTML}}
-			</div>
-		</div>
-	</body>
-</html>
-	`
 	type route struct {
 		Route     string
 		HasParams bool
@@ -240,7 +211,7 @@ func genIndex(title, prefix, editName string, routesToHandlers map[string]*handl
 	}
 
 	var buf bytes.Buffer
-	if err := renderTemplate(&buf, t, "index", data); err != nil {
+	if err := renderTemplate(&buf, indexHTMLTemplate, "index", data); err != nil {
 		return "", err
 	}
 	s := buf.String()
@@ -261,128 +232,23 @@ func renderTemplate(buf io.Writer, t string, name string, data interface{}) erro
 	return nil
 }
 
-func genEdit(title, route, prefix, indexName string, routesToHandlers map[string]*handler, format bool) (string, error) {
-	const t = `
-{{$prefix := .Prefix}}
-{{$indexName := .IndexName}}
-<!DOCTYPE html>
-<html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
+//go:embed tmpl/edit.html
+var editHTMLTemplate string
 
-		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
-			integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-			integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
-		</script>
-
-		<link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png">
-		<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32x32.png">
-		<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png">
-		<link rel="manifest" href="/img/site.webmanifest">	
-	</head>
-	<body>
-		<div class="container-fluid">
-			<h1>{{.Title}}</h1>
-			<h2>{{.Route}}</h2>
-			<form class="row g-1 needs-validation" action="{{.Route}}" method="GET">
-				{{- range $i, $f := .Forms}}
-					{{- if eq $f.Type "string"}}
-						<div class="col-md">
-							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>string</code>
-							{{if $f.Required}} (required){{end}}
-							</label>
-							<input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
-								{{if $f.Required}}required{{end}}
-							>
-					{{- end}}
-					{{- if eq $f.Type "duration"}}
-						<div class="col-md">
-							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>time.Duration</code>
-							{{if $f.Required}} (required){{end}}
-							</label>
-							<input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
-								{{if $f.Required}}required{{end}}
-							>
-					{{- end}}					
-					{{- if eq $f.Type "duration"}}
-						<div class="col-md">
-							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>time.Time</code>
-							{{if $f.Required}} (required){{end}}
-							</label>
-							<input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
-								{{if $f.Required}}required{{end}}
-							>
-					{{- end}}					
-					{{- if eq $f.Type "int"}}
-						<div class="col-md">
-							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>int</code>
-							{{if $f.Required}} (required){{end}}
-							</label>
-							<input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
-								{{if $f.Required}}required{{end}}
-							>
-					{{- end}}
-					{{- if eq $f.Type "float32"}}
-						<div class="col-md">
-							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>float32</code>
-							{{if $f.Required}} (required){{end}}
-							</label>
-							<input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
-								{{if $f.Required}}required{{end}}
-							>
-					{{- end}}
-					{{- if eq $f.Type "bool"}}
-						<div class="col-md">
-							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>bool</code>
-							{{if $f.Required}} (required){{end}}
-							</label>
-							<select name="{{$f.Name}}" class="form-select" id="validationCustom{{$i}}">
-								<option selected disabled value="">Choose...</option>
-								<option></option>
-								<option value="true">True</option>
-								<option value="false">False</option>
-							</select>
-							<div class="invalid-feedback">
-								Please select a valid {{$f.Name}}.
-							</div>
-						</div>					
-					{{- end}}
-				{{- end}}
-				<br/>
-				<div class="col-12">
-					<button class="btn btn-primary" type="submit">Submit</button>
-				</div>
-				</form>
-			<br/>
-			<a href="/{{$prefix}}/{{$indexName}}">Home</a>
-		</div>
-	</body>
-</html>
-	`
+func genEdit(title, route, prefix, indexName string, h *handler, format bool) (string, error) {
 	type form struct {
 		Name     string
 		Required bool
 		Type     HandlerMetadataParamType
 	}
 	var forms []form
-	for r, h := range routesToHandlers {
-		if r != route {
-			continue
+	for _, p := range h.metadata.Params {
+		f := form{
+			Name:     p.Name,
+			Type:     p.Type,
+			Required: p.Required,
 		}
-		if h.metadata.Empty() {
-			continue
-		}
-		for _, p := range h.metadata.Params {
-			f := form{
-				Name:     p.Name,
-				Type:     p.Type,
-				Required: p.Required,
-			}
-			forms = append(forms, f)
-		}
-		break
+		forms = append(forms, f)
 	}
 	var data = struct {
 		Title     string
@@ -399,7 +265,7 @@ func genEdit(title, route, prefix, indexName string, routesToHandlers map[string
 	}
 
 	var buf bytes.Buffer
-	if err := renderTemplate(&buf, t, "edit", data); err != nil {
+	if err := renderTemplate(&buf, editHTMLTemplate, "edit", data); err != nil {
 		return "", err
 	}
 

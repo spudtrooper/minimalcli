@@ -1,0 +1,95 @@
+{{$prefix := .Prefix}}
+{{$indexName := .IndexName}}
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
+  </script>
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png">
+  <link rel="manifest" href="/img/site.webmanifest">
+</head>
+
+<body>
+  <div class="container-fluid">
+    <h1>{{.Title}}</h1>
+    <h2>{{.Route}}</h2>
+    <form class="row g-1 needs-validation" action="{{.Route}}" method="GET">
+      {{- range $i, $f := .Forms}}
+      {{- if eq $f.Type "string"}}
+      <div class="col-md">
+        <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>string</code>
+          {{if $f.Required}} (required){{end}}
+        </label>
+        <input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
+          {{if $f.Required}}required{{end}}>
+        {{- end}}
+        {{- if eq $f.Type "duration"}}
+        <div class="col-md">
+          <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>time.Duration</code>
+            {{if $f.Required}} (required){{end}}
+          </label>
+          <input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
+            {{if $f.Required}}required{{end}}>
+          {{- end}}
+          {{- if eq $f.Type "duration"}}
+          <div class="col-md">
+            <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>time.Time</code>
+              {{if $f.Required}} (required){{end}}
+            </label>
+            <input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
+              {{if $f.Required}}required{{end}}>
+            {{- end}}
+            {{- if eq $f.Type "int"}}
+            <div class="col-md">
+              <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>int</code>
+                {{if $f.Required}} (required){{end}}
+              </label>
+              <input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
+                {{if $f.Required}}required{{end}}>
+              {{- end}}
+              {{- if eq $f.Type "float32"}}
+              <div class="col-md">
+                <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>float32</code>
+                  {{if $f.Required}} (required){{end}}
+                </label>
+                <input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
+                  {{if $f.Required}}required{{end}}>
+                {{- end}}
+                {{- if eq $f.Type "bool"}}
+                <div class="col-md">
+                  <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>bool</code>
+                    {{if $f.Required}} (required){{end}}
+                  </label>
+                  <select name="{{$f.Name}}" class="form-select" id="validationCustom{{$i}}">
+                    <option selected disabled value="">Choose...</option>
+                    <option></option>
+                    <option value="true">True</option>
+                    <option value="false">False</option>
+                  </select>
+                  <div class="invalid-feedback">
+                    Please select a valid {{$f.Name}}.
+                  </div>
+                </div>
+                {{- end}}
+                {{- end}}
+                <br />
+                <div class="col-12">
+                  <button class="btn btn-primary" type="submit">Submit</button>
+                </div>
+    </form>
+    <br />
+    <a href="/{{$prefix}}/{{$indexName}}">Home</a>
+  </div>
+</body>
+
+</html>
