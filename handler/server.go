@@ -16,6 +16,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spudtrooper/goutil/or"
+	"github.com/yosssi/gohtml"
 )
 
 type sourceLocation struct {
@@ -26,7 +27,7 @@ type sourceLocation struct {
 // TODO: github-specfic hash
 func (s sourceLocation) URI() string { return fmt.Sprintf("%s#L%d", s.uri, s.line) }
 
-//go:generate genopts --function CreateHandler indexTitle:string prefix:string indexName:string editName:string footerHTML:string sourceLinks handlersFiles:[]string sourceLinkURIRoot:string
+//go:generate genopts --function CreateHandler indexTitle:string prefix:string indexName:string editName:string footerHTML:string sourceLinks handlersFiles:[]string sourceLinkURIRoot:string formatHTML
 func CreateHandler(ctx context.Context, hs []Handler, optss ...CreateHandlerOption) (*http.ServeMux, error) {
 	opts := MakeCreateHandlerOptions(optss...)
 
@@ -44,6 +45,7 @@ func CreateHandler(ctx context.Context, hs []Handler, optss ...CreateHandlerOpti
 	footerHTML := opts.FooterHTML()
 	handlersFiles := opts.HandlersFiles()
 	sourceLinkURIRoot := opts.SourceLinkURIRoot()
+	formatHTML := opts.FormatHTML()
 
 	mux := http.NewServeMux()
 
@@ -80,7 +82,7 @@ func CreateHandler(ctx context.Context, hs []Handler, optss ...CreateHandlerOpti
 
 	handleFunc(fmt.Sprintf("/%s/%s", prefix, indexName), func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		s, err := genIndex(indexTitle, prefix, editName, routesToHandlers, footerHTML, handlerToSource)
+		s, err := genIndex(indexTitle, prefix, editName, routesToHandlers, footerHTML, handlerToSource, formatHTML)
 		if err != nil {
 			respondWithError(w, req, err)
 			return
@@ -94,7 +96,7 @@ func CreateHandler(ctx context.Context, hs []Handler, optss ...CreateHandlerOpti
 			return
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		s, err := genEdit(indexTitle, route, prefix, indexName, routesToHandlers)
+		s, err := genEdit(indexTitle, route, prefix, indexName, routesToHandlers, formatHTML)
 		if err != nil {
 			respondWithError(w, req, err)
 			return
@@ -157,7 +159,7 @@ func findHandlerSourceLocations(handlersFiles []string, sourceLinkURIRoot string
 	return res, nil
 }
 
-func genIndex(title, prefix, editName string, routesToHandlers map[string]*handler, footerHTML string, handlerToSource map[string]sourceLocation) (string, error) {
+func genIndex(title, prefix, editName string, routesToHandlers map[string]*handler, footerHTML string, handlerToSource map[string]sourceLocation, format bool) (string, error) {
 	const t = `
 {{$prefix := .Prefix}}
 {{$editName := .EditName}}
@@ -179,20 +181,20 @@ func genIndex(title, prefix, editName string, routesToHandlers map[string]*handl
 		<link rel="manifest" href="/img/site.webmanifest">	
 	</head>
 	<body>
-		<div class="container-fluid">
-			<h1>{{.Title}}</h1>
+	<div class="container-fluid">
+		<h1>{{.Title}}</h1>
 			<ul>
-				{{range .Routes}}
+				{{- range .Routes}}
 					<li>
 						<a href="{{.Route}}">{{.Route}}</a>					
-						{{if .HasParams}}
+						{{- if .HasParams}}
 							(<a href="/{{$prefix}}/{{$editName}}?route={{.Route}}">edit</a>)
-						{{end}}
-						{{if ne .SourceURI ""}}
+						{{- end}}
+						{{- if ne .SourceURI ""}}
 							[<a target="_" href="{{.SourceURI}}">source</a>]
-						{{end}}
+						{{- end}}
 					</li>
-				{{end}}
+				{{- end}}
 			</ul>
 			<div>
 				{{.FooterHTML}}
@@ -241,7 +243,11 @@ func genIndex(title, prefix, editName string, routesToHandlers map[string]*handl
 	if err := renderTemplate(&buf, t, "index", data); err != nil {
 		return "", err
 	}
-	return buf.String(), nil
+	s := buf.String()
+	if format {
+		s = gohtml.Format(s)
+	}
+	return s, nil
 }
 
 func renderTemplate(buf io.Writer, t string, name string, data interface{}) error {
@@ -255,7 +261,7 @@ func renderTemplate(buf io.Writer, t string, name string, data interface{}) erro
 	return nil
 }
 
-func genEdit(title, route, prefix, indexName string, routesToHandlers map[string]*handler) (string, error) {
+func genEdit(title, route, prefix, indexName string, routesToHandlers map[string]*handler, format bool) (string, error) {
 	const t = `
 {{$prefix := .Prefix}}
 {{$indexName := .IndexName}}
@@ -281,8 +287,8 @@ func genEdit(title, route, prefix, indexName string, routesToHandlers map[string
 			<h1>{{.Title}}</h1>
 			<h2>{{.Route}}</h2>
 			<form class="row g-1 needs-validation" action="{{.Route}}" method="GET">
-				{{range $i, $f := .Forms}}
-					{{if eq $f.Type "string"}}
+				{{- range $i, $f := .Forms}}
+					{{- if eq $f.Type "string"}}
 						<div class="col-md">
 							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>string</code>
 							{{if $f.Required}} (required){{end}}
@@ -290,8 +296,8 @@ func genEdit(title, route, prefix, indexName string, routesToHandlers map[string
 							<input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
 								{{if $f.Required}}required{{end}}
 							>
-					{{end}}
-					{{if eq $f.Type "duration"}}
+					{{- end}}
+					{{- if eq $f.Type "duration"}}
 						<div class="col-md">
 							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>time.Duration</code>
 							{{if $f.Required}} (required){{end}}
@@ -299,8 +305,8 @@ func genEdit(title, route, prefix, indexName string, routesToHandlers map[string
 							<input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
 								{{if $f.Required}}required{{end}}
 							>
-					{{end}}					
-					{{if eq $f.Type "duration"}}
+					{{- end}}					
+					{{- if eq $f.Type "duration"}}
 						<div class="col-md">
 							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>time.Time</code>
 							{{if $f.Required}} (required){{end}}
@@ -308,8 +314,8 @@ func genEdit(title, route, prefix, indexName string, routesToHandlers map[string
 							<input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
 								{{if $f.Required}}required{{end}}
 							>
-					{{end}}					
-					{{if eq $f.Type "int"}}
+					{{- end}}					
+					{{- if eq $f.Type "int"}}
 						<div class="col-md">
 							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>int</code>
 							{{if $f.Required}} (required){{end}}
@@ -317,8 +323,8 @@ func genEdit(title, route, prefix, indexName string, routesToHandlers map[string
 							<input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
 								{{if $f.Required}}required{{end}}
 							>
-					{{end}}
-					{{if eq $f.Type "float32"}}
+					{{- end}}
+					{{- if eq $f.Type "float32"}}
 						<div class="col-md">
 							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>float32</code>
 							{{if $f.Required}} (required){{end}}
@@ -326,8 +332,8 @@ func genEdit(title, route, prefix, indexName string, routesToHandlers map[string
 							<input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
 								{{if $f.Required}}required{{end}}
 							>
-					{{end}}
-					{{if eq $f.Type "bool"}}
+					{{- end}}
+					{{- if eq $f.Type "bool"}}
 						<div class="col-md">
 							<label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>bool</code>
 							{{if $f.Required}} (required){{end}}
@@ -342,8 +348,8 @@ func genEdit(title, route, prefix, indexName string, routesToHandlers map[string
 								Please select a valid {{$f.Name}}.
 							</div>
 						</div>					
-					{{end}}
-				{{end}}
+					{{- end}}
+				{{- end}}
 				<br/>
 				<div class="col-12">
 					<button class="btn btn-primary" type="submit">Submit</button>
@@ -396,5 +402,10 @@ func genEdit(title, route, prefix, indexName string, routesToHandlers map[string
 	if err := renderTemplate(&buf, t, "edit", data); err != nil {
 		return "", err
 	}
-	return buf.String(), nil
+
+	s := buf.String()
+	if format {
+		s = gohtml.Format(s)
+	}
+	return s, nil
 }

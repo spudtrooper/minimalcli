@@ -20,6 +20,8 @@ type CreateHandlerOptions interface {
 	HasHandlersFiles() bool
 	SourceLinkURIRoot() string
 	HasSourceLinkURIRoot() bool
+	FormatHTML() bool
+	HasFormatHTML() bool
 }
 
 func CreateHandlerIndexTitle(indexTitle string) CreateHandlerOption {
@@ -150,6 +152,22 @@ func CreateHandlerSourceLinkURIRootFlag(sourceLinkURIRoot *string) CreateHandler
 	}
 }
 
+func CreateHandlerFormatHTML(formatHTML bool) CreateHandlerOption {
+	return func(opts *createHandlerOptionImpl) {
+		opts.has_formatHTML = true
+		opts.formatHTML = formatHTML
+	}
+}
+func CreateHandlerFormatHTMLFlag(formatHTML *bool) CreateHandlerOption {
+	return func(opts *createHandlerOptionImpl) {
+		if formatHTML == nil {
+			return
+		}
+		opts.has_formatHTML = true
+		opts.formatHTML = *formatHTML
+	}
+}
+
 type createHandlerOptionImpl struct {
 	indexTitle            string
 	has_indexTitle        bool
@@ -167,6 +185,8 @@ type createHandlerOptionImpl struct {
 	has_handlersFiles     bool
 	sourceLinkURIRoot     string
 	has_sourceLinkURIRoot bool
+	formatHTML            bool
+	has_formatHTML        bool
 }
 
 func (c *createHandlerOptionImpl) IndexTitle() string         { return c.indexTitle }
@@ -185,6 +205,8 @@ func (c *createHandlerOptionImpl) HandlersFiles() []string    { return c.handler
 func (c *createHandlerOptionImpl) HasHandlersFiles() bool     { return c.has_handlersFiles }
 func (c *createHandlerOptionImpl) SourceLinkURIRoot() string  { return c.sourceLinkURIRoot }
 func (c *createHandlerOptionImpl) HasSourceLinkURIRoot() bool { return c.has_sourceLinkURIRoot }
+func (c *createHandlerOptionImpl) FormatHTML() bool           { return c.formatHTML }
+func (c *createHandlerOptionImpl) HasFormatHTML() bool        { return c.has_formatHTML }
 
 func makeCreateHandlerOptionImpl(opts ...CreateHandlerOption) *createHandlerOptionImpl {
 	res := &createHandlerOptionImpl{}
