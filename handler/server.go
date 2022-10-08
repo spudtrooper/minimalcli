@@ -93,7 +93,11 @@ func CreateHandler(ctx context.Context, hs []Handler, optss ...CreateHandlerOpti
 	{
 		routesToEdits := map[string]string{}
 		for route, h := range routesToHandlers {
-			edit, err := genEdit(indexTitle, route, prefix, indexName, h, formatHTML)
+			var sourceURI string
+			if s, ok := handlerToSource[h.name]; ok {
+				sourceURI = s.URI()
+			}
+			edit, err := genEdit(indexTitle, route, prefix, indexName, h, formatHTML, sourceURI)
 			if err != nil {
 				return nil, err
 			}
@@ -235,7 +239,7 @@ func renderTemplate(buf io.Writer, t string, name string, data interface{}) erro
 //go:embed tmpl/edit.html
 var editHTMLTemplate string
 
-func genEdit(title, route, prefix, indexName string, h *handler, format bool) (string, error) {
+func genEdit(title, route, prefix, indexName string, h *handler, format bool, sourceURI string) (string, error) {
 	type form struct {
 		Name     string
 		Required bool
@@ -255,12 +259,14 @@ func genEdit(title, route, prefix, indexName string, h *handler, format bool) (s
 		Route     string
 		Prefix    string
 		IndexName string
+		SourceURI string
 		Forms     []form
 	}{
 		Title:     title,
 		Route:     route,
 		Prefix:    prefix,
 		IndexName: indexName,
+		SourceURI: sourceURI,
 		Forms:     forms,
 	}
 

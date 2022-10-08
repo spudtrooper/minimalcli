@@ -87,6 +87,10 @@
                   <button class="btn btn-primary" type="submit">Submit</button>
                 </div>
     </form>
+    {{- if ne .SourceURI ""}}
+    <br />
+    <a target="_" href="{{.SourceURI}}">Source</a>
+    {{- end}}
     <br />
     <a href="/{{$prefix}}/{{$indexName}}">Home</a>
   </div>

@@ -22,12 +22,13 @@
 <body>
   <div class="container-fluid">
     <h1>{{.Title}}</h1>
-    <ul>
+    <ul style="list-style: none; padding-left:1em;">
       {{- range .Routes}}
       <li>
-        <a href="{{.Route}}">{{.Route}}</a>
         {{- if .HasParams}}
-        (<a href="/{{$prefix}}/{{$editName}}?route={{.Route}}">edit</a>)
+        <a href="/{{$prefix}}/{{$editName}}?route={{.Route}}">{{.Route}}</a>
+        {{- else}}
+        <a href="{{.Route}}">{{.Route}}</a>
         {{- end}}
         {{- if ne .SourceURI ""}}
         [<a target="_" href="{{.SourceURI}}">source</a>]
