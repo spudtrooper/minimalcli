@@ -55,7 +55,6 @@ func AddSection(ctx context.Context, mux *http.ServeMux, hs []Handler, prefix, t
 		}
 	}
 
-	indexTitle := title // TODO: Don't need to alias. Convert indexTitle -> title
 	indexName := opts.IndexName()
 	editName := or.String(opts.EditName(), "_edit")
 	footerHTML := opts.FooterHTML()
@@ -106,7 +105,7 @@ func AddSection(ctx context.Context, mux *http.ServeMux, hs []Handler, prefix, t
 	}
 
 	{
-		index, err := genIndex(indexTitle, prefix, editName, routesToHandlers, footerHTML, handlerToSource, formatHTML)
+		index, err := genIndex(title, prefix, editName, routesToHandlers, footerHTML, handlerToSource, formatHTML)
 		if err != nil {
 			return nil, errors.Errorf("error generating index page: %w", err)
 		}
@@ -123,7 +122,7 @@ func AddSection(ctx context.Context, mux *http.ServeMux, hs []Handler, prefix, t
 			if s, ok := handlerToSource[h.name]; ok {
 				sourceURI = s.URI()
 			}
-			edit, err := genEdit(indexTitle, route, prefix, indexName, h, formatHTML, sourceURI)
+			edit, err := genEdit(title, route, prefix, indexName, h, formatHTML, sourceURI)
 			if err != nil {
 				return nil, errors.Errorf("error generating edit page for %s: %w", h.name, err)
 			}
