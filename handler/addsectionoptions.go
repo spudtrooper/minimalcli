@@ -20,6 +20,8 @@ type AddSectionOptions interface {
 	HasSourceLinkURIRoot() bool
 	FormatHTML() bool
 	HasFormatHTML() bool
+	SerializedSourceLocations() []byte
+	HasSerializedSourceLocations() bool
 }
 
 func AddSectionIndexName(indexName string) AddSectionOption {
@@ -150,41 +152,63 @@ func AddSectionFormatHTMLFlag(formatHTML *bool) AddSectionOption {
 	}
 }
 
-type addSectionOptionImpl struct {
-	indexName             string
-	has_indexName         bool
-	editName              string
-	has_editName          bool
-	footerHTML            string
-	has_footerHTML        bool
-	sourceLinks           bool
-	has_sourceLinks       bool
-	handlersFiles         []string
-	has_handlersFiles     bool
-	handlersFilesRoot     string
-	has_handlersFilesRoot bool
-	sourceLinkURIRoot     string
-	has_sourceLinkURIRoot bool
-	formatHTML            bool
-	has_formatHTML        bool
+func AddSectionSerializedSourceLocations(serializedSourceLocations []byte) AddSectionOption {
+	return func(opts *addSectionOptionImpl) {
+		opts.has_serializedSourceLocations = true
+		opts.serializedSourceLocations = serializedSourceLocations
+	}
+}
+func AddSectionSerializedSourceLocationsFlag(serializedSourceLocations *[]byte) AddSectionOption {
+	return func(opts *addSectionOptionImpl) {
+		if serializedSourceLocations == nil {
+			return
+		}
+		opts.has_serializedSourceLocations = true
+		opts.serializedSourceLocations = *serializedSourceLocations
+	}
 }
 
-func (a *addSectionOptionImpl) IndexName() string          { return a.indexName }
-func (a *addSectionOptionImpl) HasIndexName() bool         { return a.has_indexName }
-func (a *addSectionOptionImpl) EditName() string           { return a.editName }
-func (a *addSectionOptionImpl) HasEditName() bool          { return a.has_editName }
-func (a *addSectionOptionImpl) FooterHTML() string         { return a.footerHTML }
-func (a *addSectionOptionImpl) HasFooterHTML() bool        { return a.has_footerHTML }
-func (a *addSectionOptionImpl) SourceLinks() bool          { return a.sourceLinks }
-func (a *addSectionOptionImpl) HasSourceLinks() bool       { return a.has_sourceLinks }
-func (a *addSectionOptionImpl) HandlersFiles() []string    { return a.handlersFiles }
-func (a *addSectionOptionImpl) HasHandlersFiles() bool     { return a.has_handlersFiles }
-func (a *addSectionOptionImpl) HandlersFilesRoot() string  { return a.handlersFilesRoot }
-func (a *addSectionOptionImpl) HasHandlersFilesRoot() bool { return a.has_handlersFilesRoot }
-func (a *addSectionOptionImpl) SourceLinkURIRoot() string  { return a.sourceLinkURIRoot }
-func (a *addSectionOptionImpl) HasSourceLinkURIRoot() bool { return a.has_sourceLinkURIRoot }
-func (a *addSectionOptionImpl) FormatHTML() bool           { return a.formatHTML }
-func (a *addSectionOptionImpl) HasFormatHTML() bool        { return a.has_formatHTML }
+type addSectionOptionImpl struct {
+	indexName                     string
+	has_indexName                 bool
+	editName                      string
+	has_editName                  bool
+	footerHTML                    string
+	has_footerHTML                bool
+	sourceLinks                   bool
+	has_sourceLinks               bool
+	handlersFiles                 []string
+	has_handlersFiles             bool
+	handlersFilesRoot             string
+	has_handlersFilesRoot         bool
+	sourceLinkURIRoot             string
+	has_sourceLinkURIRoot         bool
+	formatHTML                    bool
+	has_formatHTML                bool
+	serializedSourceLocations     []byte
+	has_serializedSourceLocations bool
+}
+
+func (a *addSectionOptionImpl) IndexName() string                 { return a.indexName }
+func (a *addSectionOptionImpl) HasIndexName() bool                { return a.has_indexName }
+func (a *addSectionOptionImpl) EditName() string                  { return a.editName }
+func (a *addSectionOptionImpl) HasEditName() bool                 { return a.has_editName }
+func (a *addSectionOptionImpl) FooterHTML() string                { return a.footerHTML }
+func (a *addSectionOptionImpl) HasFooterHTML() bool               { return a.has_footerHTML }
+func (a *addSectionOptionImpl) SourceLinks() bool                 { return a.sourceLinks }
+func (a *addSectionOptionImpl) HasSourceLinks() bool              { return a.has_sourceLinks }
+func (a *addSectionOptionImpl) HandlersFiles() []string           { return a.handlersFiles }
+func (a *addSectionOptionImpl) HasHandlersFiles() bool            { return a.has_handlersFiles }
+func (a *addSectionOptionImpl) HandlersFilesRoot() string         { return a.handlersFilesRoot }
+func (a *addSectionOptionImpl) HasHandlersFilesRoot() bool        { return a.has_handlersFilesRoot }
+func (a *addSectionOptionImpl) SourceLinkURIRoot() string         { return a.sourceLinkURIRoot }
+func (a *addSectionOptionImpl) HasSourceLinkURIRoot() bool        { return a.has_sourceLinkURIRoot }
+func (a *addSectionOptionImpl) FormatHTML() bool                  { return a.formatHTML }
+func (a *addSectionOptionImpl) HasFormatHTML() bool               { return a.has_formatHTML }
+func (a *addSectionOptionImpl) SerializedSourceLocations() []byte { return a.serializedSourceLocations }
+func (a *addSectionOptionImpl) HasSerializedSourceLocations() bool {
+	return a.has_serializedSourceLocations
+}
 
 func makeAddSectionOptionImpl(opts ...AddSectionOption) *addSectionOptionImpl {
 	res := &addSectionOptionImpl{}

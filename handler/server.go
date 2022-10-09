@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	_ "embed"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -20,13 +21,18 @@ import (
 	"github.com/yosssi/gohtml"
 )
 
-type sourceLocation struct {
-	uri  string
-	line int
+type SourceLocation struct {
+	Uri  string `json:"uri"`
+	Line int    `json:"line"`
 }
 
 // TODO: github-specfic hash
-func (s sourceLocation) URI() string { return fmt.Sprintf("%s#L%d", s.uri, s.line) }
+func (s SourceLocation) URI() string { return fmt.Sprintf("%s#L%d", s.Uri, s.Line) }
+
+type HandlerSourceLocation struct {
+	Handler string
+	Loc     SourceLocation
+}
 
 type Section struct {
 	Prefix     string
@@ -35,15 +41,18 @@ type Section struct {
 	FooterHTML string
 }
 
-//go:generate genopts --function AddSection indexName:string editName:string footerHTML:string sourceLinks handlersFiles:[]string handlersFilesRoot:string sourceLinkURIRoot:string formatHTML
+//go:generate genopts --function AddSection indexName:string editName:string footerHTML:string sourceLinks handlersFiles:[]string handlersFilesRoot:string sourceLinkURIRoot:string formatHTML serializedSourceLocations:[]byte
 func AddSection(ctx context.Context, mux *http.ServeMux, hs []Handler, prefix, title string, optss ...AddSectionOption) (*Section, error) {
 	opts := MakeAddSectionOptions(optss...)
 
-	if len(opts.HandlersFiles()) > 1 && !opts.SourceLinks() {
-		return nil, errors.Errorf("if handlersFile is set, sourceLinks should be true; you probably made a mistake")
-	}
-	if len(opts.HandlersFiles()) == 0 && opts.SourceLinks() {
-		return nil, errors.Errorf("if sourceLinks is true, handlersFile should be set; you probably made a mistake")
+	if opts.SourceLinks() {
+		if len(opts.HandlersFiles()) == 0 && len(opts.SerializedSourceLocations()) == 0 {
+			return nil, errors.Errorf("if sourceLinks is true, HandlersFiles or SerializedSourceLocationsshould be set; you probably made a mistake")
+		}
+	} else {
+		if len(opts.HandlersFiles()) > 0 || len(opts.SerializedSourceLocations()) > 0 {
+			return nil, errors.Errorf("if sourceLinks isn't set, HandlersFiles or SerializedSourceLocationsshould should not set; you probably made a mistake")
+		}
 	}
 
 	indexTitle := title // TODO: Don't need to alias. Convert indexTitle -> title
@@ -72,7 +81,7 @@ func AddSection(ctx context.Context, mux *http.ServeMux, hs []Handler, prefix, t
 		})
 	}
 
-	var handlerToSource map[string]sourceLocation
+	var handlerToSource map[string]SourceLocation
 	if opts.SourceLinks() && len(handlersFiles) > 0 {
 		m, err := findHandlerSourceLocations(handlersFiles, handlersFilesRoot, sourceLinkURIRoot)
 		if err != nil {
@@ -82,6 +91,18 @@ func AddSection(ctx context.Context, mux *http.ServeMux, hs []Handler, prefix, t
 		if len(handlerToSource) != len(hs) {
 			log.Printf("warning: when generating source links, we found %d handlers and %d source locations", len(hs), len(handlerToSource))
 		}
+	}
+
+	if opts.SourceLinks() && len(opts.SerializedSourceLocations()) > 0 {
+		var locs []HandlerSourceLocation
+		if err := json.Unmarshal(opts.SerializedSourceLocations(), &locs); err != nil {
+			return nil, errors.Errorf("failed to unmarshal source locations: %w", err)
+		}
+		m := map[string]SourceLocation{}
+		for _, loc := range locs {
+			m[loc.Handler] = loc.Loc
+		}
+		handlerToSource = m
 	}
 
 	{
@@ -228,38 +249,46 @@ var (
 	newHandlerRE = regexp.MustCompile(`NewHandler\("([^"]+)"`)
 )
 
-func findHandlerSourceLocations(handlersFiles []string, handlersFilesRoot string, sourceLinkURIRoot string) (map[string]sourceLocation, error) {
-	res := map[string]sourceLocation{}
+func FindHandlerSourceLocations(handlersFiles []string, sourceLinkURIRoot string) (map[string]SourceLocation, error) {
+	return findHandlerSourceLocations(handlersFiles, "", sourceLinkURIRoot)
+}
+
+func findHandlerSourceLocations(handlersFiles []string, handlersFilesRoot string, sourceLinkURIRoot string) (map[string]SourceLocation, error) {
+	res := map[string]SourceLocation{}
+	root := sourceLinkURIRoot
+	if strings.HasSuffix(root, "/") {
+		root = strings.TrimRight(root, "/")
+	}
+	if strings.HasPrefix(root, "/") {
+		root = strings.TrimLeft(root, "/")
+	}
 	for _, f := range handlersFiles {
+		log.Printf("reading %s...", f)
 		c, err := ioutil.ReadFile(f)
 		if err != nil {
 			return nil, err
 		}
-		root := sourceLinkURIRoot
-		if strings.HasSuffix(root, "/") {
-			root = strings.TrimRight(root, "/")
-		}
-		if strings.HasPrefix(root, "/") {
-			root = strings.TrimLeft(root, "/")
-		}
+		startLen := len(res)
 		for i, line := range strings.Split(string(c), "\n") {
 			if m := newHandlerFromHandlerFnRE.FindStringSubmatch(line); len(m) == 2 {
 				h := m[1]
 				f = strings.TrimPrefix(f, handlersFilesRoot)
 				// Can't use path.Join, because it will remove the leading double slashes
 				uri := root + "/" + f
-				loc := sourceLocation{uri, i + 1}
+				loc := SourceLocation{uri, i + 1}
 				res[h] = loc
 				continue
 			}
 			if m := newHandlerRE.FindStringSubmatch(line); len(m) == 2 {
 				h := m[1]
 				uri := path.Join(sourceLinkURIRoot, f)
-				loc := sourceLocation{uri, i + 1}
+				loc := SourceLocation{uri, i + 1}
 				res[h] = loc
 				continue
 			}
 		}
+		stopLen := len(res)
+		log.Printf("found %d source locations from %s...", stopLen-startLen, f)
 	}
 	if len(res) == 0 {
 		return nil, errors.Errorf("no handlers found in any of the files: %s", handlersFiles)
@@ -270,7 +299,7 @@ func findHandlerSourceLocations(handlersFiles []string, handlersFilesRoot string
 //go:embed tmpl/index.html
 var indexHTMLTemplate string
 
-func genIndex(title, prefix, editName string, routesToHandlers map[string]*handler, footerHTML string, handlerToSource map[string]sourceLocation, format bool) (string, error) {
+func genIndex(title, prefix, editName string, routesToHandlers map[string]*handler, footerHTML string, handlerToSource map[string]SourceLocation, format bool) (string, error) {
 	type route struct {
 		Route     string
 		HasParams bool

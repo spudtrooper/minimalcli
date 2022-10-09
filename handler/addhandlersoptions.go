@@ -24,6 +24,8 @@ type AddHandlersOptions interface {
 	HasSourceLinkURIRoot() bool
 	FormatHTML() bool
 	HasFormatHTML() bool
+	SerializedSourceLocations() []byte
+	HasSerializedSourceLocations() bool
 	ToAddSectionOptions() []AddSectionOption
 }
 
@@ -187,27 +189,45 @@ func AddHandlersFormatHTMLFlag(formatHTML *bool) AddHandlersOption {
 	}
 }
 
+func AddHandlersSerializedSourceLocations(serializedSourceLocations []byte) AddHandlersOption {
+	return func(opts *addHandlersOptionImpl) {
+		opts.has_serializedSourceLocations = true
+		opts.serializedSourceLocations = serializedSourceLocations
+	}
+}
+func AddHandlersSerializedSourceLocationsFlag(serializedSourceLocations *[]byte) AddHandlersOption {
+	return func(opts *addHandlersOptionImpl) {
+		if serializedSourceLocations == nil {
+			return
+		}
+		opts.has_serializedSourceLocations = true
+		opts.serializedSourceLocations = *serializedSourceLocations
+	}
+}
+
 type addHandlersOptionImpl struct {
-	indexTitle            string
-	has_indexTitle        bool
-	prefix                string
-	has_prefix            bool
-	indexName             string
-	has_indexName         bool
-	editName              string
-	has_editName          bool
-	footerHTML            string
-	has_footerHTML        bool
-	sourceLinks           bool
-	has_sourceLinks       bool
-	handlersFiles         []string
-	has_handlersFiles     bool
-	handlersFilesRoot     string
-	has_handlersFilesRoot bool
-	sourceLinkURIRoot     string
-	has_sourceLinkURIRoot bool
-	formatHTML            bool
-	has_formatHTML        bool
+	indexTitle                    string
+	has_indexTitle                bool
+	prefix                        string
+	has_prefix                    bool
+	indexName                     string
+	has_indexName                 bool
+	editName                      string
+	has_editName                  bool
+	footerHTML                    string
+	has_footerHTML                bool
+	sourceLinks                   bool
+	has_sourceLinks               bool
+	handlersFiles                 []string
+	has_handlersFiles             bool
+	handlersFilesRoot             string
+	has_handlersFilesRoot         bool
+	sourceLinkURIRoot             string
+	has_sourceLinkURIRoot         bool
+	formatHTML                    bool
+	has_formatHTML                bool
+	serializedSourceLocations     []byte
+	has_serializedSourceLocations bool
 }
 
 func (a *addHandlersOptionImpl) IndexTitle() string         { return a.indexTitle }
@@ -230,6 +250,12 @@ func (a *addHandlersOptionImpl) SourceLinkURIRoot() string  { return a.sourceLin
 func (a *addHandlersOptionImpl) HasSourceLinkURIRoot() bool { return a.has_sourceLinkURIRoot }
 func (a *addHandlersOptionImpl) FormatHTML() bool           { return a.formatHTML }
 func (a *addHandlersOptionImpl) HasFormatHTML() bool        { return a.has_formatHTML }
+func (a *addHandlersOptionImpl) SerializedSourceLocations() []byte {
+	return a.serializedSourceLocations
+}
+func (a *addHandlersOptionImpl) HasSerializedSourceLocations() bool {
+	return a.has_serializedSourceLocations
+}
 
 // ToAddSectionOptions converts AddHandlersOption to an array of AddSectionOption
 func (o *addHandlersOptionImpl) ToAddSectionOptions() []AddSectionOption {
@@ -242,6 +268,7 @@ func (o *addHandlersOptionImpl) ToAddSectionOptions() []AddSectionOption {
 		AddSectionHandlersFilesRoot(o.HandlersFilesRoot()),
 		AddSectionSourceLinkURIRoot(o.SourceLinkURIRoot()),
 		AddSectionFormatHTML(o.FormatHTML()),
+		AddSectionSerializedSourceLocations(o.SerializedSourceLocations()),
 	}
 }
 
