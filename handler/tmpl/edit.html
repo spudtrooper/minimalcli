@@ -17,6 +17,11 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png">
   <link rel="manifest" href="/img/site.webmanifest">
+  <style>
+    .default-value {
+      color: #00008B;
+    }
+  </style>
 </head>
 
 <body>
@@ -29,6 +34,7 @@
       <div class="col-md">
         <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>string</code>
           {{if $f.Required}} (required){{end}}
+          {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code>]{{end}}
         </label>
         <input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
           {{if $f.Required}}required{{end}}>
@@ -37,6 +43,7 @@
         <div class="col-md">
           <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>time.Duration</code>
             {{if $f.Required}} (required){{end}}
+            {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code>]{{end}}
           </label>
           <input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
             {{if $f.Required}}required{{end}}>
@@ -45,6 +52,7 @@
           <div class="col-md">
             <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>time.Time</code>
               {{if $f.Required}} (required){{end}}
+              {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code>]{{end}}
             </label>
             <input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
               {{if $f.Required}}required{{end}}>
@@ -53,6 +61,7 @@
             <div class="col-md">
               <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>int</code>
                 {{if $f.Required}} (required){{end}}
+                {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code>]{{end}}
               </label>
               <input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
                 {{if $f.Required}}required{{end}}>
@@ -61,31 +70,42 @@
               <div class="col-md">
                 <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>float32</code>
                   {{if $f.Required}} (required){{end}}
+                  {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code>]{{end}}
                 </label>
                 <input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
                   {{if $f.Required}}required{{end}}>
                 {{- end}}
-                {{- if eq $f.Type "bool"}}
+                {{- if eq $f.Type "float64"}}
                 <div class="col-md">
-                  <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>bool</code>
+                  <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>float64</code>
                     {{if $f.Required}} (required){{end}}
+                    {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code>]{{end}}
                   </label>
-                  <select name="{{$f.Name}}" class="form-select" id="validationCustom{{$i}}">
-                    <option selected disabled value="">Choose...</option>
-                    <option></option>
-                    <option value="true">True</option>
-                    <option value="false">False</option>
-                  </select>
-                  <div class="invalid-feedback">
-                    Please select a valid {{$f.Name}}.
+                  <input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
+                    {{if $f.Required}}required{{end}}>
+                  {{- end}}
+                  {{- if eq $f.Type "bool"}}
+                  <div class="col-md">
+                    <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>bool</code>
+                      {{if $f.Required}} (required){{end}}
+                      {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code>]{{end}}
+                    </label>
+                    <select name="{{$f.Name}}" class="form-select" id="validationCustom{{$i}}">
+                      <option selected disabled value="">Choose...</option>
+                      <option></option>
+                      <option value="true">True</option>
+                      <option value="false">False</option>
+                    </select>
+                    <div class="invalid-feedback">
+                      Please select a valid {{$f.Name}}.
+                    </div>
                   </div>
-                </div>
-                {{- end}}
-                {{- end}}
-                <br />
-                <div class="col-12">
-                  <button class="btn btn-primary" type="submit">Submit</button>
-                </div>
+                  {{- end}}
+                  {{- end}}
+                  <br />
+                  <div class="col-12">
+                    <button class="btn btn-primary" type="submit">Submit</button>
+                  </div>
     </form>
     {{- if ne .SourceURI ""}}
     <br />

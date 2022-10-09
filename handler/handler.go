@@ -34,6 +34,7 @@ type HandlerMetadataParam struct {
 	Name     string
 	Type     HandlerMetadataParamType
 	Required bool
+	Default  string
 }
 
 type HandlerMetadata struct {

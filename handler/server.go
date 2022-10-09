@@ -244,6 +244,7 @@ func genEdit(title, route, prefix, indexName string, h *handler, format bool, so
 		Name     string
 		Required bool
 		Type     HandlerMetadataParamType
+		Default  string
 	}
 	var forms []form
 	for _, p := range h.metadata.Params {
@@ -251,6 +252,7 @@ func genEdit(title, route, prefix, indexName string, h *handler, format bool, so
 			Name:     p.Name,
 			Type:     p.Type,
 			Required: p.Required,
+			Default:  p.Default,
 		}
 		forms = append(forms, f)
 	}

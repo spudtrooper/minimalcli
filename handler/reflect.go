@@ -80,17 +80,18 @@ func exportedFields(o any) []reflect.StructField {
 func paramsFromStruct(fs []reflect.StructField) []HandlerMetadataParam {
 	var params []HandlerMetadataParam
 	for _, f := range fs {
-		name, required := findFieldMetadata(f)
+		name, required, def := findFieldMetadata(f)
 		params = append(params, HandlerMetadataParam{
 			Name:     name,
 			Type:     typeFromKind(f.Type.Kind()),
 			Required: required,
+			Default:  def,
 		})
 	}
 	return params
 }
 
-func findFieldMetadata(f reflect.StructField) (name string, required bool) {
+func findFieldMetadata(f reflect.StructField) (name string, required bool, def string) {
 	if t, ok := f.Tag.Lookup("required"); ok {
 		val := strings.Split(t, ",")[0]
 		required = strings.EqualFold(val, "true") || strings.EqualFold(val, "1")
@@ -99,6 +100,9 @@ func findFieldMetadata(f reflect.StructField) (name string, required bool) {
 		name = strings.Split(t, ",")[0]
 	} else {
 		name = strcase.ToSnake(f.Name)
+	}
+	if t, ok := f.Tag.Lookup("default"); ok {
+		def = strings.Split(t, ",")[0]
 	}
 	return
 }
@@ -122,7 +126,7 @@ func setValuesOnParams(ctx EvalContext, pCtor ctorFn, fs []reflect.StructField) 
 			log.Printf("ERROR: !IsValid: %+v", f)
 			continue
 		}
-		nameInCtx, required := findFieldMetadata(sf)
+		nameInCtx, required, _ := findFieldMetadata(sf)
 		switch f.Kind() {
 		case reflect.String:
 			if required {
