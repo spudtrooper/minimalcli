@@ -28,15 +28,15 @@ type sourceLocation struct {
 // TODO: github-specfic hash
 func (s sourceLocation) URI() string { return fmt.Sprintf("%s#L%d", s.uri, s.line) }
 
-//go:generate genopts --function CreateHandler indexTitle:string prefix:string indexName:string editName:string footerHTML:string sourceLinks handlersFiles:[]string sourceLinkURIRoot:string formatHTML
-func CreateHandler(ctx context.Context, hs []Handler, optss ...CreateHandlerOption) (*http.ServeMux, error) {
-	opts := MakeCreateHandlerOptions(optss...)
+//go:generate genopts --function AddHandlers indexTitle:string prefix:string indexName:string editName:string footerHTML:string sourceLinks handlersFiles:[]string sourceLinkURIRoot:string formatHTML
+func AddHandlers(ctx context.Context, mux *http.ServeMux, hs []Handler, optss ...AddHandlersOption) error {
+	opts := MakeAddHandlersOptions(optss...)
 
 	if len(opts.HandlersFiles()) > 1 && !opts.SourceLinks() {
-		return nil, errors.Errorf("if handlersFile is set, sourceLinks should be true; you probably made a mistake")
+		return errors.Errorf("if handlersFile is set, sourceLinks should be true; you probably made a mistake")
 	}
 	if len(opts.HandlersFiles()) == 0 && opts.SourceLinks() {
-		return nil, errors.Errorf("if sourceLinks is true, handlersFile should be set; you probably made a mistake")
+		return errors.Errorf("if sourceLinks is true, handlersFile should be set; you probably made a mistake")
 	}
 
 	indexTitle := or.String(opts.IndexTitle(), "API")
@@ -47,8 +47,6 @@ func CreateHandler(ctx context.Context, hs []Handler, optss ...CreateHandlerOpti
 	handlersFiles := opts.HandlersFiles()
 	sourceLinkURIRoot := opts.SourceLinkURIRoot()
 	formatHTML := opts.FormatHTML()
-
-	mux := http.NewServeMux()
 
 	handleFunc := func(route string, fn func(w http.ResponseWriter, req *http.Request)) {
 		log.Printf("adding route %s", route)
@@ -71,7 +69,7 @@ func CreateHandler(ctx context.Context, hs []Handler, optss ...CreateHandlerOpti
 	if len(handlersFiles) > 0 {
 		m, err := findHandlerSourceLocations(handlersFiles, sourceLinkURIRoot)
 		if err != nil {
-			return nil, err
+			return errors.Errorf("failed to find source locations in files %s: %w", handlersFiles, err)
 		}
 		handlerToSource = m
 		if len(handlerToSource) != len(hs) {
@@ -82,7 +80,7 @@ func CreateHandler(ctx context.Context, hs []Handler, optss ...CreateHandlerOpti
 	{
 		index, err := genIndex(indexTitle, prefix, editName, routesToHandlers, footerHTML, handlerToSource, formatHTML)
 		if err != nil {
-			return nil, err
+			return errors.Errorf("error generating index page: %w", err)
 		}
 		handleFunc(fmt.Sprintf("/%s/%s", prefix, indexName), func(w http.ResponseWriter, req *http.Request) {
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -99,7 +97,7 @@ func CreateHandler(ctx context.Context, hs []Handler, optss ...CreateHandlerOpti
 			}
 			edit, err := genEdit(indexTitle, route, prefix, indexName, h, formatHTML, sourceURI)
 			if err != nil {
-				return nil, err
+				return errors.Errorf("error generating edit page for %s: %w", h.name, err)
 			}
 			routesToEdits[route] = edit
 
@@ -119,7 +117,7 @@ func CreateHandler(ctx context.Context, hs []Handler, optss ...CreateHandlerOpti
 		})
 	}
 
-	return mux, nil
+	return nil
 }
 
 func handle(ctx context.Context, h *handler, w http.ResponseWriter, req *http.Request) {
