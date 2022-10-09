@@ -21,17 +21,17 @@ import (
 	"github.com/yosssi/gohtml"
 )
 
-type SourceLocation struct {
+type sourceLocation struct {
 	Uri  string `json:"uri"`
 	Line int    `json:"line"`
 }
 
 // TODO: github-specfic hash
-func (s SourceLocation) URI() string { return fmt.Sprintf("%s#L%d", s.Uri, s.Line) }
+func (s sourceLocation) URI() string { return fmt.Sprintf("%s#L%d", s.Uri, s.Line) }
 
 type HandlerSourceLocation struct {
 	Handler string
-	Loc     SourceLocation
+	Loc     sourceLocation
 }
 
 type Section struct {
@@ -80,7 +80,7 @@ func AddSection(ctx context.Context, mux *http.ServeMux, hs []Handler, prefix, t
 		})
 	}
 
-	var handlerToSource map[string]SourceLocation
+	var handlerToSource map[string]sourceLocation
 	if opts.SourceLinks() && len(handlersFiles) > 0 {
 		m, err := findHandlerSourceLocations(handlersFiles, handlersFilesRoot, sourceLinkURIRoot)
 		if err != nil {
@@ -97,7 +97,7 @@ func AddSection(ctx context.Context, mux *http.ServeMux, hs []Handler, prefix, t
 		if err := json.Unmarshal(opts.SerializedSourceLocations(), &locs); err != nil {
 			return nil, errors.Errorf("failed to unmarshal source locations: %w", err)
 		}
-		m := map[string]SourceLocation{}
+		m := map[string]sourceLocation{}
 		for _, loc := range locs {
 			m[loc.Handler] = loc.Loc
 		}
@@ -248,12 +248,12 @@ var (
 	newHandlerRE = regexp.MustCompile(`NewHandler\("([^"]+)"`)
 )
 
-func FindHandlerSourceLocations(handlersFiles []string, sourceLinkURIRoot string) (map[string]SourceLocation, error) {
+func FindHandlerSourceLocations(handlersFiles []string, sourceLinkURIRoot string) (map[string]sourceLocation, error) {
 	return findHandlerSourceLocations(handlersFiles, "", sourceLinkURIRoot)
 }
 
-func findHandlerSourceLocations(handlersFiles []string, handlersFilesRoot string, sourceLinkURIRoot string) (map[string]SourceLocation, error) {
-	res := map[string]SourceLocation{}
+func findHandlerSourceLocations(handlersFiles []string, handlersFilesRoot string, sourceLinkURIRoot string) (map[string]sourceLocation, error) {
+	res := map[string]sourceLocation{}
 	root := sourceLinkURIRoot
 	if strings.HasSuffix(root, "/") {
 		root = strings.TrimRight(root, "/")
@@ -274,14 +274,14 @@ func findHandlerSourceLocations(handlersFiles []string, handlersFilesRoot string
 				f = strings.TrimPrefix(f, handlersFilesRoot)
 				// Can't use path.Join, because it will remove the leading double slashes
 				uri := root + "/" + f
-				loc := SourceLocation{uri, i + 1}
+				loc := sourceLocation{uri, i + 1}
 				res[h] = loc
 				continue
 			}
 			if m := newHandlerRE.FindStringSubmatch(line); len(m) == 2 {
 				h := m[1]
 				uri := path.Join(sourceLinkURIRoot, f)
-				loc := SourceLocation{uri, i + 1}
+				loc := sourceLocation{uri, i + 1}
 				res[h] = loc
 				continue
 			}
@@ -298,7 +298,7 @@ func findHandlerSourceLocations(handlersFiles []string, handlersFilesRoot string
 //go:embed tmpl/index.html
 var indexHTMLTemplate string
 
-func genIndex(title, prefix, editName string, routesToHandlers map[string]*handler, footerHTML string, handlerToSource map[string]SourceLocation, format bool) (string, error) {
+func genIndex(title, prefix, editName string, routesToHandlers map[string]*handler, footerHTML string, handlerToSource map[string]sourceLocation, format bool) (string, error) {
 	type route struct {
 		Route     string
 		HasParams bool
