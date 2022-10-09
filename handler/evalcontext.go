@@ -14,6 +14,7 @@ type EvalContext interface {
 	Bool(name string) bool
 	Int(name string) int
 	Float32(name string) float32
+	Float64(name string) float64
 	Duration(name string) time.Duration
 	Time(name string) (time.Time, error)
 }
@@ -24,6 +25,7 @@ type cliEvalContext struct {
 	boolFlags    map[string]*bool
 	intFlags     map[string]*int
 	float32Flags map[string]*float32
+	float64Flags map[string]*float64
 	durFlags     map[string]*time.Duration
 	timeFlags    map[string]*time.Time
 }
@@ -87,6 +89,14 @@ func (c *cliEvalContext) Float32(name string) float32 {
 	return *flag
 }
 
+func (c *cliEvalContext) Float64(name string) float64 {
+	flag, ok := c.float64Flags[name]
+	if !ok {
+		return 0
+	}
+	return *flag
+}
+
 type serverEvalContext struct {
 	ctx context.Context
 	w   http.ResponseWriter
@@ -98,6 +108,7 @@ func (c *serverEvalContext) String(name string) string   { return getStringURLPa
 func (c *serverEvalContext) Bool(name string) bool       { return getBoolURLParam(c.req, name) }
 func (c *serverEvalContext) Int(name string) int         { return getIntURLParam(c.req, name) }
 func (c *serverEvalContext) Float32(name string) float32 { return getFloat32URLParam(c.req, name) }
+func (c *serverEvalContext) Float64(name string) float64 { return getFloat64URLParam(c.req, name) }
 
 func (c *serverEvalContext) MustString(name string) (string, bool) {
 	return getStringURLParamOrDie(c.w, c.req, name)

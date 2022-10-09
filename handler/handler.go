@@ -26,6 +26,7 @@ const (
 	HandlerMetadataParamTypeDuration HandlerMetadataParamType = "duration"
 	HandlerMetadataParamTypeTime     HandlerMetadataParamType = "time"
 	HandlerMetadataParamTypeFloat32  HandlerMetadataParamType = "float32"
+	HandlerMetadataParamTypeFloat64  HandlerMetadataParamType = "float64"
 	HandlerMetadataParamTypeUnknown  HandlerMetadataParamType = "unknown"
 )
 

@@ -76,3 +76,12 @@ func (p *paramsBuilder) Float32(name string) *paramsBuilder {
 	})
 	return p
 }
+
+// Float64 creates a new optional `float` param
+func (p *paramsBuilder) Float64(name string) *paramsBuilder {
+	p.params = append(p.params, HandlerMetadataParam{
+		Name: name,
+		Type: HandlerMetadataParamTypeFloat64,
+	})
+	return p
+}

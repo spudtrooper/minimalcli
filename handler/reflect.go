@@ -50,6 +50,8 @@ func typeFromKind(k reflect.Kind) HandlerMetadataParamType {
 		return HandlerMetadataParamTypeBool
 	case reflect.Float32:
 		return HandlerMetadataParamTypeFloat32
+	case reflect.Float64:
+		return HandlerMetadataParamTypeFloat64
 	case reflect.Struct:
 		if k.String() == "time.Duration" {
 			return HandlerMetadataParamTypeDuration
@@ -139,6 +141,8 @@ func setValuesOnParams(ctx EvalContext, pCtor ctorFn, fs []reflect.StructField) 
 			f.SetBool(ctx.Bool(nameInCtx))
 		case reflect.Float32:
 			f.SetFloat(float64(ctx.Float32(nameInCtx)))
+		case reflect.Float64:
+			f.SetFloat(ctx.Float64(nameInCtx))
 		case reflect.Struct:
 			if f.Type().String() == "time.Duration" {
 				f.Set(reflect.ValueOf(ctx.Duration(nameInCtx)))

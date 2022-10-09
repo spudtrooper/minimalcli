@@ -94,21 +94,28 @@ func getIntURLParam(req *http.Request, key string) int {
 	return 0
 }
 
-func getFloat32URLParam(req *http.Request, key string) float32 {
+func getFloatURLParam(req *http.Request, key string, bitSize int) float64 {
 	key = sanitizeURLParam(key)
 	vals := req.URL.Query()[key]
 	if len(vals) > 0 {
 		v := vals[0]
 		if v != "" {
-			res, err := strconv.ParseFloat(v, 32)
+			res, err := strconv.ParseFloat(v, bitSize)
 			if err != nil {
-				log.Printf("getIntURLParam: %v", err)
+				log.Printf("strconv.ParseFloat: %v", err)
 				return 0
 			}
-			return float32(res)
+			return res
 		}
 	}
 	return 0
+}
+
+func getFloat32URLParam(req *http.Request, key string) float32 {
+	return float32(getFloatURLParam(req, key, 32))
+}
+func getFloat64URLParam(req *http.Request, key string) float64 {
+	return getFloatURLParam(req, key, 64)
 }
 
 func getBoolURLParam(req *http.Request, key string) bool {
