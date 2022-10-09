@@ -18,10 +18,13 @@ type AddHandlersOptions interface {
 	HasSourceLinks() bool
 	HandlersFiles() []string
 	HasHandlersFiles() bool
+	HandlersFilesRoot() string
+	HasHandlersFilesRoot() bool
 	SourceLinkURIRoot() string
 	HasSourceLinkURIRoot() bool
 	FormatHTML() bool
 	HasFormatHTML() bool
+	ToAddSectionOptions() []AddSectionOption
 }
 
 func AddHandlersIndexTitle(indexTitle string) AddHandlersOption {
@@ -136,6 +139,22 @@ func AddHandlersHandlersFilesFlag(handlersFiles *[]string) AddHandlersOption {
 	}
 }
 
+func AddHandlersHandlersFilesRoot(handlersFilesRoot string) AddHandlersOption {
+	return func(opts *addHandlersOptionImpl) {
+		opts.has_handlersFilesRoot = true
+		opts.handlersFilesRoot = handlersFilesRoot
+	}
+}
+func AddHandlersHandlersFilesRootFlag(handlersFilesRoot *string) AddHandlersOption {
+	return func(opts *addHandlersOptionImpl) {
+		if handlersFilesRoot == nil {
+			return
+		}
+		opts.has_handlersFilesRoot = true
+		opts.handlersFilesRoot = *handlersFilesRoot
+	}
+}
+
 func AddHandlersSourceLinkURIRoot(sourceLinkURIRoot string) AddHandlersOption {
 	return func(opts *addHandlersOptionImpl) {
 		opts.has_sourceLinkURIRoot = true
@@ -183,6 +202,8 @@ type addHandlersOptionImpl struct {
 	has_sourceLinks       bool
 	handlersFiles         []string
 	has_handlersFiles     bool
+	handlersFilesRoot     string
+	has_handlersFilesRoot bool
 	sourceLinkURIRoot     string
 	has_sourceLinkURIRoot bool
 	formatHTML            bool
@@ -203,10 +224,26 @@ func (a *addHandlersOptionImpl) SourceLinks() bool          { return a.sourceLin
 func (a *addHandlersOptionImpl) HasSourceLinks() bool       { return a.has_sourceLinks }
 func (a *addHandlersOptionImpl) HandlersFiles() []string    { return a.handlersFiles }
 func (a *addHandlersOptionImpl) HasHandlersFiles() bool     { return a.has_handlersFiles }
+func (a *addHandlersOptionImpl) HandlersFilesRoot() string  { return a.handlersFilesRoot }
+func (a *addHandlersOptionImpl) HasHandlersFilesRoot() bool { return a.has_handlersFilesRoot }
 func (a *addHandlersOptionImpl) SourceLinkURIRoot() string  { return a.sourceLinkURIRoot }
 func (a *addHandlersOptionImpl) HasSourceLinkURIRoot() bool { return a.has_sourceLinkURIRoot }
 func (a *addHandlersOptionImpl) FormatHTML() bool           { return a.formatHTML }
 func (a *addHandlersOptionImpl) HasFormatHTML() bool        { return a.has_formatHTML }
+
+// ToAddSectionOptions converts AddHandlersOption to an array of AddSectionOption
+func (o *addHandlersOptionImpl) ToAddSectionOptions() []AddSectionOption {
+	return []AddSectionOption{
+		AddSectionIndexName(o.IndexName()),
+		AddSectionEditName(o.EditName()),
+		AddSectionFooterHTML(o.FooterHTML()),
+		AddSectionSourceLinks(o.SourceLinks()),
+		AddSectionHandlersFiles(o.HandlersFiles()),
+		AddSectionHandlersFilesRoot(o.HandlersFilesRoot()),
+		AddSectionSourceLinkURIRoot(o.SourceLinkURIRoot()),
+		AddSectionFormatHTML(o.FormatHTML()),
+	}
+}
 
 func makeAddHandlersOptionImpl(opts ...AddHandlersOption) *addHandlersOptionImpl {
 	res := &addHandlersOptionImpl{}
