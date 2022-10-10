@@ -4,7 +4,7 @@ Minimal CLI framework for go.
 
 ## tl;dr
 
-Why use this? [See here](https://github.com/spudtrooper/minimalcli/blob/main/use-case.md).
+This is a framework that allows you iterate on an API and easily create a CLI and HTTP server consistently. It essentially lets you migrate from a library to a service. So, it serves the same purpose as gPRC and client libraries,  but you write the library first with little scaffolding. The premise is that this order is more natural for iteration.
 
 Example projects using this:
 
@@ -12,6 +12,7 @@ Example projects using this:
   * [github.com/spudtrooper/opentable](https://github.com/spudtrooper/opentable)
   * [github.com/spudtrooper/resy](https://github.com/spudtrooper/resy)
 
+More details on why? [See here](https://github.com/spudtrooper/minimalcli/blob/main/use-case.md).
 
 ## Details
 
