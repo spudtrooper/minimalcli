@@ -29,6 +29,26 @@ func NewCLIAdapter() *cliAdapter {
 	}
 }
 
+func (c *cliAdapter) BindToGlobalFlags() { c.bind(globalFlagCache) }
+
+func (a *cliAdapter) bind(c *cache) {
+	for name, flag := range c.strFlags {
+		a.BindStringFlag(name, flag)
+	}
+	for name, flag := range c.boolFlags {
+		a.BindBoolFlag(name, flag)
+	}
+	for name, flag := range c.intFlags {
+		a.BindIntFlag(name, flag)
+	}
+	for name, flag := range c.float64Flags {
+		a.BindFloat64Flag(name, flag)
+	}
+	for name, flag := range c.durFlags {
+		a.BindDurationFlag(name, flag)
+	}
+}
+
 func (c *cliAdapter) BindStringFlag(name string, flag *string)          { c.strFlags[name] = flag }
 func (c *cliAdapter) BindBoolFlag(name string, flag *bool)              { c.boolFlags[name] = flag }
 func (c *cliAdapter) BindIntFlag(name string, flag *int)                { c.intFlags[name] = flag }
