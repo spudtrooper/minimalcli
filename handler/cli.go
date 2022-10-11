@@ -83,3 +83,12 @@ func CreateCLI(a *cliAdapter, hs ...Handler) *minimalcli.App {
 
 	return app
 }
+
+func RunCLI(ctx context.Context, hs ...Handler) error {
+	adp := NewCLIAdapter()
+	adp.BindToGlobalFlags()
+
+	app := CreateCLI(adp, hs...)
+
+	return app.Run(ctx)
+}
