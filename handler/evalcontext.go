@@ -5,6 +5,9 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/pkg/errors"
+	goutiltime "github.com/spudtrooper/goutil/time"
 )
 
 type EvalContext interface {
@@ -81,14 +84,20 @@ func (c *cliEvalContext) Duration(name string) time.Duration {
 	return *flag
 }
 
-// TODO: Implement getting time from string flag.
 func (c *cliEvalContext) Time(name string) (time.Time, error) {
-	flag, ok := c.timeFlags[name]
+	if flag, ok := c.timeFlags[name]; ok {
+		return *flag, nil
+	}
+	flag, ok := c.strFlags[name]
 	if !ok {
 		var zero time.Time
 		return zero, nil
 	}
-	return *flag, nil
+	t, err := goutiltime.Parse(*flag)
+	if err != nil {
+		return time.Time{}, errors.Errorf("failed to parse time: %v", err)
+	}
+	return t, nil
 }
 
 func (c *cliEvalContext) Float32(name string) float32 {
