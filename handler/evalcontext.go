@@ -13,6 +13,7 @@ type EvalContext interface {
 	MustString(name string) (string, bool)
 	Bool(name string) bool
 	Int(name string) int
+	MustInt(name string) (int, bool)
 	Float32(name string) float32
 	Float64(name string) float64
 	Duration(name string) time.Duration
@@ -64,6 +65,14 @@ func (c *cliEvalContext) Int(name string) int {
 	return *flag
 }
 
+func (c *cliEvalContext) MustInt(name string) (int, bool) {
+	val := c.Int(name)
+	if val == 0 {
+		log.Fatalf("--%s required", name)
+	}
+	return val, true
+}
+
 func (c *cliEvalContext) Duration(name string) time.Duration {
 	flag, ok := c.durFlags[name]
 	if !ok {
@@ -72,6 +81,7 @@ func (c *cliEvalContext) Duration(name string) time.Duration {
 	return *flag
 }
 
+// TODO: Implement getting time from string flag.
 func (c *cliEvalContext) Time(name string) (time.Time, error) {
 	flag, ok := c.timeFlags[name]
 	if !ok {
@@ -112,6 +122,10 @@ func (c *serverEvalContext) Float64(name string) float64 { return getFloat64URLP
 
 func (c *serverEvalContext) MustString(name string) (string, bool) {
 	return getStringURLParamOrDie(c.w, c.req, name)
+}
+
+func (c *serverEvalContext) MustInt(name string) (int, bool) {
+	return getIntURLParamOrDie(c.w, c.req, name)
 }
 
 func (c *serverEvalContext) Duration(name string) time.Duration {

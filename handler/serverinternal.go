@@ -68,6 +68,14 @@ func getStringURLParamOrDie(w http.ResponseWriter, req *http.Request, key string
 	return "", false
 }
 
+func getIntURLParamOrDie(w http.ResponseWriter, req *http.Request, key string) (int, bool) {
+	if res := getIntURLParam(req, key); res != 0 {
+		return res, true
+	}
+	respondWithErrorString(w, req, fmt.Sprintf("%s required", key))
+	return 0, false
+}
+
 func getStringListURLParam(req *http.Request, key string) []string {
 	key = sanitizeURLParam(key)
 	p := getStringURLParam(req, key)

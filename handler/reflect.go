@@ -130,17 +130,26 @@ func setValuesOnParams(ctx EvalContext, pCtor ctorFn, fs []reflect.StructField) 
 		switch f.Kind() {
 		case reflect.String:
 			if required {
-				s, ok := ctx.MustString(nameInCtx)
+				v, ok := ctx.MustString(nameInCtx)
 				if !ok {
 					shouldHandle = false
 					break
 				}
-				f.SetString(s)
+				f.SetString(v)
 			} else {
 				f.SetString(ctx.String(nameInCtx))
 			}
 		case reflect.Int:
-			f.SetInt(int64(ctx.Int(nameInCtx)))
+			if required {
+				v, ok := ctx.MustInt(nameInCtx)
+				if !ok {
+					shouldHandle = false
+					break
+				}
+				f.SetInt(int64(v))
+			} else {
+				f.SetInt(int64(ctx.Int(nameInCtx)))
+			}
 		case reflect.Bool:
 			f.SetBool(ctx.Bool(nameInCtx))
 		case reflect.Float32:
