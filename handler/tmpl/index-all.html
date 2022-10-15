@@ -20,26 +20,26 @@
 <body>
   <div class="container-fluid">
     <h1>{{.Title}} All</h1>
-    <ul style="list-style: none; padding-left:1em;">
+    <ul>
       {{- range .Sections}}
       {{$s := .}}
       <li>
         <a href="{{.Prefix}}">{{.Prefix}}</a> - {{.Title}}
         asdfasdf
-        <ul style="list-style: none; padding-left:1em;">
+        <ul>
           {{- range .Routes}}
           <li>
-            {{if .HasParams}}
+            {{- if .HasParams}}
             <a href="/{{$s.Prefix}}/{{$s.EditName}}?route={{.Route}}">{{.Route}}</a>
-            {{else}}
+            {{- else}}
             <a href="{{.Route}}">{{.Route}}</a>
-            {{end}}
-            {{if ne .SourceURI ""}}
+            {{- end}}
+            {{- if ne .SourceURI ""}}
             [ <a target="_" href="//{{.SourceURI}}">source</a> ]
-            {{end}}
+            {{- end}}
           </li>
           {{- end}}
-        </ul>        
+        </ul>
       </li>
       {{- end}}
     </ul>
