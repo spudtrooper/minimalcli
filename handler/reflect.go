@@ -46,12 +46,15 @@ func metadataFromStruct(fs []reflect.StructField, requiredFields []string) Handl
 	}
 }
 
-func typeFromKind(k reflect.Kind) HandlerMetadataParamType {
-	switch k {
+func typeFromKind(f reflect.StructField) HandlerMetadataParamType {
+	switch k := f.Type.Kind(); k {
 	case reflect.String:
 		return HandlerMetadataParamTypeString
 	case reflect.Int:
 		return HandlerMetadataParamTypeInt
+	case reflect.Int64:
+		// Assume this is a time.Duration.
+		return HandlerMetadataParamTypeDuration
 	case reflect.Bool:
 		return HandlerMetadataParamTypeBool
 	case reflect.Float32:
@@ -59,10 +62,7 @@ func typeFromKind(k reflect.Kind) HandlerMetadataParamType {
 	case reflect.Float64:
 		return HandlerMetadataParamTypeFloat64
 	case reflect.Struct:
-		if k.String() == "time.Duration" {
-			return HandlerMetadataParamTypeDuration
-		}
-		if k.String() == "time.Time" {
+		if f.Type.Name() == "time.Time" {
 			return HandlerMetadataParamTypeTime
 		}
 	default:
@@ -93,7 +93,7 @@ func paramsFromStruct(fs []reflect.StructField, requiredFields []string) []Handl
 		}
 		params = append(params, HandlerMetadataParam{
 			Name:     name,
-			Type:     typeFromKind(f.Type.Kind()),
+			Type:     typeFromKind(f),
 			Required: required,
 			Default:  def,
 		})
@@ -137,11 +137,6 @@ func setValuesOnParams(ctx EvalContext, pCtor ctorFn, fs []reflect.StructField) 
 			continue
 		}
 		nameInCtx, required, _ := findFieldMetadata(sf)
-		if *debug {
-			log.Printf(
-				"setValuesOnParams: nameInCtx=%s, required=%t, sf=%+v f=%+v",
-				nameInCtx, required, sf, f)
-		}
 		switch f.Kind() {
 		case reflect.String:
 			if required {
