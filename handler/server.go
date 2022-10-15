@@ -35,10 +35,12 @@ type HandlerSourceLocation struct {
 }
 
 type Section struct {
-	Prefix     string
-	Title      string
-	Handlers   []Handler
-	FooterHTML string
+	Prefix          string
+	Title           string
+	Handlers        []Handler
+	FooterHTML      string
+	HandlerToSource map[string]sourceLocation
+	EditName        string
 }
 
 //go:generate genopts --function AddSection indexName:string editName:string footerHTML:string sourceLinks handlersFiles:[]string handlersFilesRoot:string sourceLinkURIRoot:string formatHTML serializedSourceLocations:[]byte
@@ -68,6 +70,7 @@ func AddSection(ctx context.Context, mux *http.ServeMux, hs []Handler, prefix, t
 		mux.HandleFunc(route, fn)
 	}
 	routesToHandlers := map[string]*handler{}
+	routesToHandlerMinimalMetadata := map[string]handlerMinimalMetadata{}
 	for _, h := range hs {
 		h := h.(*handler)
 		if h.cliOnly {
@@ -78,6 +81,10 @@ func AddSection(ctx context.Context, mux *http.ServeMux, hs []Handler, prefix, t
 		handleFunc(route, func(w http.ResponseWriter, req *http.Request) {
 			handle(ctx, h, w, req)
 		})
+		routesToHandlerMinimalMetadata[route] = handlerMinimalMetadata{
+			Name:      h.name,
+			HasParams: !h.metadata.Empty(),
+		}
 	}
 
 	var handlerToSource map[string]sourceLocation
@@ -105,7 +112,7 @@ func AddSection(ctx context.Context, mux *http.ServeMux, hs []Handler, prefix, t
 	}
 
 	{
-		index, err := genIndex(title, prefix, editName, routesToHandlers, footerHTML, handlerToSource, formatHTML)
+		index, err := genSectionIndex(title, prefix, editName, routesToHandlerMinimalMetadata, footerHTML, handlerToSource, formatHTML)
 		if err != nil {
 			return nil, errors.Errorf("error generating index page: %w", err)
 		}
@@ -145,32 +152,52 @@ func AddSection(ctx context.Context, mux *http.ServeMux, hs []Handler, prefix, t
 	}
 
 	sec := &Section{
-		Prefix:     prefix,
-		Title:      title,
-		Handlers:   hs,
-		FooterHTML: opts.FooterHTML(),
+		Prefix:          prefix,
+		Title:           title,
+		Handlers:        hs,
+		FooterHTML:      opts.FooterHTML(),
+		HandlerToSource: handlerToSource,
+		EditName:        editName,
 	}
 	return sec, nil
 }
 
-//go:generate genopts --function GenIndex title:string footerHTML:string formatHTML route:string
+//go:generate genopts --function GenIndex title:string:Index footerHTML:string formatHTML route:string:/
 func GenIndex(ctx context.Context, mux *http.ServeMux, secs []Section, optss ...GenIndexOption) error {
 	opts := MakeGenIndexOptions(optss...)
-
-	title := or.String(opts.Title(), "Index")
-	route := or.String(opts.Route(), "/")
 
 	handleFunc := func(route string, fn func(w http.ResponseWriter, req *http.Request)) {
 		log.Printf("adding route %s", route)
 		mux.HandleFunc(route, fn)
 	}
 
-	all, err := genAllIndex(title, opts.FooterHTML(), opts.FormatHTML(), secs)
+	all, err := genIndex(opts.Title(), opts.FooterHTML(), opts.FormatHTML(), secs)
 	if err != nil {
 		return err
 	}
 
-	handleFunc(route, func(w http.ResponseWriter, req *http.Request) {
+	handleFunc(opts.Route(), func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		fmt.Fprint(w, all)
+	})
+	return nil
+}
+
+//go:generate genopts --function GenAll title:string:All footerHTML:string formatHTML route:string:/_all
+func GenAll(ctx context.Context, mux *http.ServeMux, secs []Section, optss ...GenAllOption) error {
+	opts := MakeGenAllOptions(optss...)
+
+	handleFunc := func(route string, fn func(w http.ResponseWriter, req *http.Request)) {
+		log.Printf("adding route %s", route)
+		mux.HandleFunc(route, fn)
+	}
+
+	all, err := genAll(opts.Title(), opts.FooterHTML(), opts.FormatHTML(), secs)
+	if err != nil {
+		return err
+	}
+
+	handleFunc(opts.Route(), func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		fmt.Fprint(w, all)
 	})
@@ -178,18 +205,18 @@ func GenIndex(ctx context.Context, mux *http.ServeMux, secs []Section, optss ...
 }
 
 var (
-	//go:embed tmpl/all.html
-	allHTMLTemplate string
+	//go:embed tmpl/index-summary.html
+	indexSummaryHTMLTemplate string
 )
 
-func genAllIndex(title, footerHTML string, format bool, secs []Section) (string, error) {
-	type Sec struct {
+func genIndex(title, footerHTML string, format bool, secs []Section) (string, error) {
+	type sec struct {
 		Route string
 		Title string
 	}
-	var sections []Sec
+	var sections []sec
 	for _, s := range secs {
-		sections = append(sections, Sec{
+		sections = append(sections, sec{
 			Route: s.Prefix,
 			Title: s.Title,
 		})
@@ -199,7 +226,7 @@ func genAllIndex(title, footerHTML string, format bool, secs []Section) (string,
 	})
 	var data = struct {
 		Title      string
-		Sections   []Sec
+		Sections   []sec
 		FooterHTML string
 	}{
 		Title:      title,
@@ -208,7 +235,56 @@ func genAllIndex(title, footerHTML string, format bool, secs []Section) (string,
 	}
 
 	var buf bytes.Buffer
-	if err := renderTemplate(&buf, allHTMLTemplate, "all", data); err != nil {
+	if err := renderTemplate(&buf, indexSummaryHTMLTemplate, "index-summary", data); err != nil {
+		return "", err
+	}
+	s := buf.String()
+	if format {
+		s = gohtml.Format(s)
+	}
+	return s, nil
+}
+
+var (
+	//go:embed tmpl/index-all.html
+	indexAllHTMLTemplate string
+)
+
+func genAll(title, footerHTML string, format bool, secs []Section) (string, error) {
+	var sections []sectionIndex
+	for _, s := range secs {
+		routesToHandlerMinimalMetadata := map[string]handlerMinimalMetadata{}
+		for _, h := range s.Handlers {
+			h := h.(*handler)
+			if h.cliOnly {
+				continue
+			}
+			route := fmt.Sprintf("/%s/%s", s.Prefix, strings.ToLower(h.name))
+			routesToHandlerMinimalMetadata[route] = handlerMinimalMetadata{
+				Name:      h.name,
+				HasParams: !h.metadata.Empty(),
+			}
+		}
+		sectionIndexData := makeSectionIndexData(
+			s.Title, s.Prefix, s.EditName, routesToHandlerMinimalMetadata, s.FooterHTML, s.HandlerToSource)
+		sections = append(sections, sectionIndexData)
+	}
+	sort.Slice(sections, func(i, j int) bool {
+		return sections[i].Prefix < sections[j].Prefix
+	})
+
+	var data = struct {
+		Title      string
+		Sections   []sectionIndex
+		FooterHTML string
+	}{
+		Title:      title,
+		Sections:   sections,
+		FooterHTML: footerHTML,
+	}
+
+	var buf bytes.Buffer
+	if err := renderTemplate(&buf, indexAllHTMLTemplate, "index-all", data); err != nil {
 		return "", err
 	}
 	s := buf.String()
@@ -295,48 +371,61 @@ func findHandlerSourceLocations(handlersFiles []string, handlersFilesRoot string
 	return res, nil
 }
 
-//go:embed tmpl/index.html
-var indexHTMLTemplate string
+//go:embed tmpl/section-index.html
+var sectionIndexHTMLTemplate string
 
-func genIndex(title, prefix, editName string, routesToHandlers map[string]*handler, footerHTML string, handlerToSource map[string]sourceLocation, format bool) (string, error) {
-	type route struct {
-		Route     string
-		HasParams bool
-		SourceURI string
-	}
+type sectionIndexRoute struct {
+	Route     string
+	HasParams bool
+	SourceURI string
+}
+type sectionIndex struct {
+	Title      string
+	Prefix     string
+	EditName   string
+	Routes     []sectionIndexRoute
+	FooterHTML string
+}
+
+type handlerMinimalMetadata struct {
+	Name      string
+	HasParams bool
+}
+
+func makeSectionIndexData(title, prefix, editName string, routesToHandlers map[string]handlerMinimalMetadata, footerHTML string, handlerToSource map[string]sourceLocation) sectionIndex {
 	var routePaths []string
 	for r := range routesToHandlers {
 		routePaths = append(routePaths, r)
 	}
 	sort.Strings(routePaths)
-	var routes []route
+	var routes []sectionIndexRoute
 	for _, r := range routePaths {
-		route := route{
+		route := sectionIndexRoute{
 			Route:     r,
-			HasParams: !routesToHandlers[r].metadata.Empty(),
+			HasParams: routesToHandlers[r].HasParams,
 		}
 		h := routesToHandlers[r]
-		if s, ok := handlerToSource[h.name]; ok {
+		if s, ok := handlerToSource[h.Name]; ok {
 			route.SourceURI = s.URI()
 		}
 		routes = append(routes, route)
 	}
-	var data = struct {
-		Title      string
-		Prefix     string
-		EditName   string
-		Routes     []route
-		FooterHTML string
-	}{
+
+	return sectionIndex{
 		Title:      title,
 		Prefix:     prefix,
 		EditName:   editName,
 		Routes:     routes,
 		FooterHTML: footerHTML,
 	}
+}
+
+func genSectionIndex(title, prefix, editName string, routesToHandlers map[string]handlerMinimalMetadata, footerHTML string, handlerToSource map[string]sourceLocation, format bool) (string, error) {
+	data := makeSectionIndexData(
+		title, prefix, editName, routesToHandlers, footerHTML, handlerToSource)
 
 	var buf bytes.Buffer
-	if err := renderTemplate(&buf, indexHTMLTemplate, "index", data); err != nil {
+	if err := renderTemplate(&buf, sectionIndexHTMLTemplate, "section-index", data); err != nil {
 		return "", err
 	}
 	s := buf.String()

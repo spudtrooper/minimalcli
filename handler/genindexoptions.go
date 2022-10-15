@@ -1,6 +1,10 @@
 // DO NOT EDIT MANUALLY: Generated from https://github.com/spudtrooper/genopts
 package handler
 
+import (
+	"github.com/spudtrooper/goutil/or"
+)
+
 type GenIndexOption func(*genIndexOptionImpl)
 
 type GenIndexOptions interface {
@@ -89,13 +93,13 @@ type genIndexOptionImpl struct {
 	has_route      bool
 }
 
-func (g *genIndexOptionImpl) Title() string       { return g.title }
+func (g *genIndexOptionImpl) Title() string       { return or.String(g.title, "Index") }
 func (g *genIndexOptionImpl) HasTitle() bool      { return g.has_title }
 func (g *genIndexOptionImpl) FooterHTML() string  { return g.footerHTML }
 func (g *genIndexOptionImpl) HasFooterHTML() bool { return g.has_footerHTML }
 func (g *genIndexOptionImpl) FormatHTML() bool    { return g.formatHTML }
 func (g *genIndexOptionImpl) HasFormatHTML() bool { return g.has_formatHTML }
-func (g *genIndexOptionImpl) Route() string       { return g.route }
+func (g *genIndexOptionImpl) Route() string       { return or.String(g.route, "/") }
 func (g *genIndexOptionImpl) HasRoute() bool      { return g.has_route }
 
 func makeGenIndexOptionImpl(opts ...GenIndexOption) *genIndexOptionImpl {
