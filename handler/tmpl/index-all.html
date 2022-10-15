@@ -23,24 +23,27 @@
     <ul>
       {{- range .Sections}}
       {{$s := .}}
-      <li>
-        <a href="{{.Prefix}}">{{.Prefix}}</a> - {{.Title}}
-        asdfasdf
-        <ul>
-          {{- range .Routes}}
-          <li>
-            {{- if .HasParams}}
-            <a href="/{{$s.Prefix}}/{{$s.EditName}}?route={{.Route}}">{{.Route}}</a>
-            {{- else}}
-            <a href="{{.Route}}">{{.Route}}</a>
-            {{- end}}
-            {{- if ne .SourceURI ""}}
-            [ <a target="_" href="//{{.SourceURI}}">source</a> ]
-            {{- end}}
-          </li>
-          {{- end}}
-        </ul>
-      </li>
+      <div class="card" style="width: 100%; margin-bottom: 1em">
+        <div class="card-body">
+          <h5 class="card-title"><a href="/{{.Prefix}}">{{.Prefix}}</a> - {{.Title}}</h5>
+          <p class="card-text">
+            <ul style="list-style: none; padding-left:1em;">
+              {{- range .Routes}}
+              <li>
+                {{- if .HasParams}}
+                <a href="/{{$s.Prefix}}/{{$s.EditName}}?route={{.Route}}">{{.Route}}</a>
+                {{- else}}
+                <a href="{{.Route}}">{{.Route}}</a>
+                {{- end}}
+                {{- if ne .SourceURI ""}}
+                [ <a target="_" href="//{{.SourceURI}}">source</a> ]
+                {{- end}}
+              </li>
+              {{- end}}
+            </ul>
+          </p>
+        </div>
+      </div>
       {{- end}}
     </ul>
     <div>
