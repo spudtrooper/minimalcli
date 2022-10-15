@@ -147,7 +147,5 @@ func (c *serverEvalContext) Time(name string) (time.Time, error) {
 		var t time.Time
 		return t, nil
 	}
-	// TODO: This isn't going to work, but keeping for now to maintain the interface
-	res, err := time.Parse("2006-01-02 15:04", s)
-	return res, err
+	return goutiltime.Parse(s)
 }
