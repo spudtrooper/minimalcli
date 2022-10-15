@@ -29,17 +29,7 @@
     <h1>{{.Title}}</h1>
     <h2>{{.Route}}</h2>
     <form class="row g-1 needs-validation" action="{{.Route}}" method="GET">
-      {{- range $i, $f := .Forms}}
-      {{- if eq $f.Type "time.Duration"}}
-      <div>
-        <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>duration</code>
-          {{if $f.Required}} (required){{end}}
-          {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
-        </label>
-        <input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$i}}" value=""
-          {{if $f.Required}}required{{end}}>
-      </div>
-      {{- end}}      
+      {{- range $i, $f := .Forms}}    
       {{- if eq $f.Type "string"}}
       <div>
         <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>string</code>
@@ -60,7 +50,7 @@
           {{if $f.Required}}required{{end}}>
       </div>
       {{- end}}
-      {{- if eq $f.Type "duration"}}
+      {{- if eq $f.Type "time"}}
       <div>
         <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>time.Time</code>
           {{if $f.Required}} (required){{end}}
