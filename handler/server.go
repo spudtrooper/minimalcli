@@ -367,15 +367,39 @@ func genEdit(title, route, prefix, indexName string, h *handler, format bool, so
 		Type     HandlerMetadataParamType
 		Default  string
 	}
+	// Put the required fields first and do it in the shittiest way posssible.
 	var forms []form
-	for _, p := range h.metadata.Params {
-		f := form{
-			Name:     p.Name,
-			Type:     p.Type,
-			Required: p.Required,
-			Default:  p.Default,
+	{
+		var requiredForms []form
+		for _, p := range h.metadata.Params {
+			if p.Required {
+				requiredForms = append(requiredForms, form{
+					Name:     p.Name,
+					Type:     p.Type,
+					Required: p.Required,
+					Default:  p.Default,
+				})
+			}
 		}
-		forms = append(forms, f)
+		sort.Slice(requiredForms, func(i, j int) bool {
+			return requiredForms[i].Name < requiredForms[j].Name
+		})
+		var optionalForms []form
+		for _, p := range h.metadata.Params {
+			if !p.Required {
+				optionalForms = append(optionalForms, form{
+					Name:     p.Name,
+					Type:     p.Type,
+					Required: p.Required,
+					Default:  p.Default,
+				})
+			}
+		}
+		sort.Slice(optionalForms, func(i, j int) bool {
+			return optionalForms[i].Name < optionalForms[j].Name
+		})
+		forms = append(forms, requiredForms...)
+		forms = append(forms, optionalForms...)
 	}
 	var data = struct {
 		Title     string

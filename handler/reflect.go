@@ -9,6 +9,7 @@ import (
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
 	"github.com/spudtrooper/goutil/or"
+	"github.com/spudtrooper/goutil/sets"
 )
 
 type ctorFn func() any
@@ -21,7 +22,7 @@ func NewHandler(name string, hf handlerFn, p any, optss ...NewHandlerOption) Han
 	}
 	opts := MakeNewHandlerOptions(optss...)
 	fields := exportedFields(p)
-	metadata := metadataFromStruct(fields)
+	metadata := metadataFromStruct(fields, opts.RequiredFields())
 	fn := fnFromStructAndParams(hf, pCtor, fields)
 	cliOnly := opts.CliOnly()
 	method := or.String(opts.Method(), "GET")
@@ -34,9 +35,9 @@ func NewHandler(name string, hf handlerFn, p any, optss ...NewHandlerOption) Han
 	}
 }
 
-func metadataFromStruct(fs []reflect.StructField) HandlerMetadata {
+func metadataFromStruct(fs []reflect.StructField, requiredFields []string) HandlerMetadata {
 	return HandlerMetadata{
-		Params: paramsFromStruct(fs),
+		Params: paramsFromStruct(fs, requiredFields),
 	}
 }
 
@@ -77,10 +78,14 @@ func exportedFields(o any) []reflect.StructField {
 	return fs
 }
 
-func paramsFromStruct(fs []reflect.StructField) []HandlerMetadataParam {
+func paramsFromStruct(fs []reflect.StructField, requiredFields []string) []HandlerMetadataParam {
 	var params []HandlerMetadataParam
+	reqFields := sets.String(requiredFields)
 	for _, f := range fs {
 		name, required, def := findFieldMetadata(f)
+		if _, ok := reqFields[name]; ok {
+			required = true
+		}
 		params = append(params, HandlerMetadataParam{
 			Name:     name,
 			Type:     typeFromKind(f.Type.Kind()),
