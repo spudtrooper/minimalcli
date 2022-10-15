@@ -10,8 +10,8 @@ type NewHandlerOptions interface {
 	HasMetadata() bool
 	Method() string
 	HasMethod() bool
-	RequiredFields() []string
-	HasRequiredFields() bool
+	ExtraRequiredFields() []string
+	HasExtraRequiredFields() bool
 }
 
 func NewHandlerCliOnly(cliOnly bool) NewHandlerOption {
@@ -62,41 +62,41 @@ func NewHandlerMethodFlag(method *string) NewHandlerOption {
 	}
 }
 
-func NewHandlerRequiredFields(requiredFields []string) NewHandlerOption {
+func NewHandlerExtraRequiredFields(extraRequiredFields []string) NewHandlerOption {
 	return func(opts *newHandlerOptionImpl) {
-		opts.has_requiredFields = true
-		opts.requiredFields = requiredFields
+		opts.has_extraRequiredFields = true
+		opts.extraRequiredFields = extraRequiredFields
 	}
 }
-func NewHandlerRequiredFieldsFlag(requiredFields *[]string) NewHandlerOption {
+func NewHandlerExtraRequiredFieldsFlag(extraRequiredFields *[]string) NewHandlerOption {
 	return func(opts *newHandlerOptionImpl) {
-		if requiredFields == nil {
+		if extraRequiredFields == nil {
 			return
 		}
-		opts.has_requiredFields = true
-		opts.requiredFields = *requiredFields
+		opts.has_extraRequiredFields = true
+		opts.extraRequiredFields = *extraRequiredFields
 	}
 }
 
 type newHandlerOptionImpl struct {
-	cliOnly            bool
-	has_cliOnly        bool
-	metadata           HandlerMetadata
-	has_metadata       bool
-	method             string
-	has_method         bool
-	requiredFields     []string
-	has_requiredFields bool
+	cliOnly                 bool
+	has_cliOnly             bool
+	metadata                HandlerMetadata
+	has_metadata            bool
+	method                  string
+	has_method              bool
+	extraRequiredFields     []string
+	has_extraRequiredFields bool
 }
 
-func (n *newHandlerOptionImpl) CliOnly() bool             { return n.cliOnly }
-func (n *newHandlerOptionImpl) HasCliOnly() bool          { return n.has_cliOnly }
-func (n *newHandlerOptionImpl) Metadata() HandlerMetadata { return n.metadata }
-func (n *newHandlerOptionImpl) HasMetadata() bool         { return n.has_metadata }
-func (n *newHandlerOptionImpl) Method() string            { return n.method }
-func (n *newHandlerOptionImpl) HasMethod() bool           { return n.has_method }
-func (n *newHandlerOptionImpl) RequiredFields() []string  { return n.requiredFields }
-func (n *newHandlerOptionImpl) HasRequiredFields() bool   { return n.has_requiredFields }
+func (n *newHandlerOptionImpl) CliOnly() bool                 { return n.cliOnly }
+func (n *newHandlerOptionImpl) HasCliOnly() bool              { return n.has_cliOnly }
+func (n *newHandlerOptionImpl) Metadata() HandlerMetadata     { return n.metadata }
+func (n *newHandlerOptionImpl) HasMetadata() bool             { return n.has_metadata }
+func (n *newHandlerOptionImpl) Method() string                { return n.method }
+func (n *newHandlerOptionImpl) HasMethod() bool               { return n.has_method }
+func (n *newHandlerOptionImpl) ExtraRequiredFields() []string { return n.extraRequiredFields }
+func (n *newHandlerOptionImpl) HasExtraRequiredFields() bool  { return n.has_extraRequiredFields }
 
 func makeNewHandlerOptionImpl(opts ...NewHandlerOption) *newHandlerOptionImpl {
 	res := &newHandlerOptionImpl{}

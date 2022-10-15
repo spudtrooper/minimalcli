@@ -22,7 +22,7 @@ func NewHandler(name string, hf handlerFn, p any, optss ...NewHandlerOption) Han
 	}
 	opts := MakeNewHandlerOptions(optss...)
 	fields := exportedFields(p)
-	metadata := metadataFromStruct(fields, opts.RequiredFields())
+	metadata := metadataFromStruct(fields, opts.ExtraRequiredFields())
 	fn := fnFromStructAndParams(hf, pCtor, fields)
 	cliOnly := opts.CliOnly()
 	method := or.String(opts.Method(), "GET")
