@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"flag"
 	"log"
 	"reflect"
 	"strings"
@@ -10,6 +11,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spudtrooper/goutil/or"
 	"github.com/spudtrooper/goutil/sets"
+)
+
+var (
+	debug = flag.Bool("minimalcli_debug", false, "enable debug logging")
 )
 
 type ctorFn func() any
@@ -132,6 +137,11 @@ func setValuesOnParams(ctx EvalContext, pCtor ctorFn, fs []reflect.StructField) 
 			continue
 		}
 		nameInCtx, required, _ := findFieldMetadata(sf)
+		if *debug {
+			log.Printf(
+				"setValuesOnParams: nameInCtx=%s, required=%t, sf=%+v f=%+v",
+				nameInCtx, required, sf, f)
+		}
 		switch f.Kind() {
 		case reflect.String:
 			if required {
@@ -155,6 +165,24 @@ func setValuesOnParams(ctx EvalContext, pCtor ctorFn, fs []reflect.StructField) 
 			} else {
 				f.SetInt(int64(ctx.Int(nameInCtx)))
 			}
+		case reflect.Int64:
+			// First try this as a time.Duration.
+			if v := ctx.Duration(nameInCtx); v != 0 {
+				// TODO: Allow required time.Duration
+				f.SetInt(int64(v))
+				break
+			}
+			// Fall back to int64.
+			if required {
+				v, ok := ctx.MustInt(nameInCtx)
+				if !ok {
+					shouldHandle = false
+					break
+				}
+				f.SetInt(int64(v))
+			} else {
+				f.SetInt(int64(ctx.Int(nameInCtx)))
+			}
 		case reflect.Bool:
 			f.SetBool(ctx.Bool(nameInCtx))
 		case reflect.Float32:
@@ -162,9 +190,6 @@ func setValuesOnParams(ctx EvalContext, pCtor ctorFn, fs []reflect.StructField) 
 		case reflect.Float64:
 			f.SetFloat(ctx.Float64(nameInCtx))
 		case reflect.Struct:
-			if f.Type().String() == "time.Duration" {
-				f.Set(reflect.ValueOf(ctx.Duration(nameInCtx)))
-			}
 			if f.Type().String() == "time.Time" {
 				t, err := ctx.Time(nameInCtx)
 				if err != nil {
@@ -173,7 +198,8 @@ func setValuesOnParams(ctx EvalContext, pCtor ctorFn, fs []reflect.StructField) 
 				f.Set(reflect.ValueOf(t))
 			}
 		default:
-			return nil, false, errors.Errorf("unkown type")
+			return nil, false, errors.Errorf(
+				"unkown type for nameInCtx:%s f:%+v kind:%s", nameInCtx, f, f.Kind())
 		}
 	}
 	v.Set(tmp)
