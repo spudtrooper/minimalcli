@@ -20,6 +20,8 @@ type AddSectionOptions interface {
 	HasSourceLinkURIRoot() bool
 	FormatHTML() bool
 	HasFormatHTML() bool
+	Key() string
+	HasKey() bool
 	SerializedSourceLocations() []byte
 	HasSerializedSourceLocations() bool
 }
@@ -152,6 +154,22 @@ func AddSectionFormatHTMLFlag(formatHTML *bool) AddSectionOption {
 	}
 }
 
+func AddSectionKey(key string) AddSectionOption {
+	return func(opts *addSectionOptionImpl) {
+		opts.has_key = true
+		opts.key = key
+	}
+}
+func AddSectionKeyFlag(key *string) AddSectionOption {
+	return func(opts *addSectionOptionImpl) {
+		if key == nil {
+			return
+		}
+		opts.has_key = true
+		opts.key = *key
+	}
+}
+
 func AddSectionSerializedSourceLocations(serializedSourceLocations []byte) AddSectionOption {
 	return func(opts *addSectionOptionImpl) {
 		opts.has_serializedSourceLocations = true
@@ -185,6 +203,8 @@ type addSectionOptionImpl struct {
 	has_sourceLinkURIRoot         bool
 	formatHTML                    bool
 	has_formatHTML                bool
+	key                           string
+	has_key                       bool
 	serializedSourceLocations     []byte
 	has_serializedSourceLocations bool
 }
@@ -205,6 +225,8 @@ func (a *addSectionOptionImpl) SourceLinkURIRoot() string         { return a.sou
 func (a *addSectionOptionImpl) HasSourceLinkURIRoot() bool        { return a.has_sourceLinkURIRoot }
 func (a *addSectionOptionImpl) FormatHTML() bool                  { return a.formatHTML }
 func (a *addSectionOptionImpl) HasFormatHTML() bool               { return a.has_formatHTML }
+func (a *addSectionOptionImpl) Key() string                       { return a.key }
+func (a *addSectionOptionImpl) HasKey() bool                      { return a.has_key }
 func (a *addSectionOptionImpl) SerializedSourceLocations() []byte { return a.serializedSourceLocations }
 func (a *addSectionOptionImpl) HasSerializedSourceLocations() bool {
 	return a.has_serializedSourceLocations

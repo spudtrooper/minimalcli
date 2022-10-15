@@ -24,6 +24,8 @@ type AddHandlersOptions interface {
 	HasSourceLinkURIRoot() bool
 	FormatHTML() bool
 	HasFormatHTML() bool
+	Key() string
+	HasKey() bool
 	SerializedSourceLocations() []byte
 	HasSerializedSourceLocations() bool
 	ToAddSectionOptions() []AddSectionOption
@@ -189,6 +191,22 @@ func AddHandlersFormatHTMLFlag(formatHTML *bool) AddHandlersOption {
 	}
 }
 
+func AddHandlersKey(key string) AddHandlersOption {
+	return func(opts *addHandlersOptionImpl) {
+		opts.has_key = true
+		opts.key = key
+	}
+}
+func AddHandlersKeyFlag(key *string) AddHandlersOption {
+	return func(opts *addHandlersOptionImpl) {
+		if key == nil {
+			return
+		}
+		opts.has_key = true
+		opts.key = *key
+	}
+}
+
 func AddHandlersSerializedSourceLocations(serializedSourceLocations []byte) AddHandlersOption {
 	return func(opts *addHandlersOptionImpl) {
 		opts.has_serializedSourceLocations = true
@@ -226,6 +244,8 @@ type addHandlersOptionImpl struct {
 	has_sourceLinkURIRoot         bool
 	formatHTML                    bool
 	has_formatHTML                bool
+	key                           string
+	has_key                       bool
 	serializedSourceLocations     []byte
 	has_serializedSourceLocations bool
 }
@@ -250,6 +270,8 @@ func (a *addHandlersOptionImpl) SourceLinkURIRoot() string  { return a.sourceLin
 func (a *addHandlersOptionImpl) HasSourceLinkURIRoot() bool { return a.has_sourceLinkURIRoot }
 func (a *addHandlersOptionImpl) FormatHTML() bool           { return a.formatHTML }
 func (a *addHandlersOptionImpl) HasFormatHTML() bool        { return a.has_formatHTML }
+func (a *addHandlersOptionImpl) Key() string                { return a.key }
+func (a *addHandlersOptionImpl) HasKey() bool               { return a.has_key }
 func (a *addHandlersOptionImpl) SerializedSourceLocations() []byte {
 	return a.serializedSourceLocations
 }
@@ -268,6 +290,7 @@ func (o *addHandlersOptionImpl) ToAddSectionOptions() []AddSectionOption {
 		AddSectionHandlersFilesRoot(o.HandlersFilesRoot()),
 		AddSectionSourceLinkURIRoot(o.SourceLinkURIRoot()),
 		AddSectionFormatHTML(o.FormatHTML()),
+		AddSectionKey(o.Key()),
 		AddSectionSerializedSourceLocations(o.SerializedSourceLocations()),
 	}
 }

@@ -43,7 +43,16 @@ type Section struct {
 	EditName        string
 }
 
-//go:generate genopts --function AddSection indexName:string editName:string footerHTML:string sourceLinks handlersFiles:[]string handlersFilesRoot:string sourceLinkURIRoot:string formatHTML serializedSourceLocations:[]byte
+type handleFn func(string, func(w http.ResponseWriter, req *http.Request))
+
+func loggingHandleFn(mux *http.ServeMux) handleFn {
+	return func(route string, fn func(w http.ResponseWriter, req *http.Request)) {
+		log.Printf("adding route %s", route)
+		mux.HandleFunc(route, fn)
+	}
+}
+
+//go:generate genopts --function AddSection indexName:string editName:string footerHTML:string sourceLinks handlersFiles:[]string handlersFilesRoot:string sourceLinkURIRoot:string formatHTML key:string serializedSourceLocations:[]byte
 func AddSection(ctx context.Context, mux *http.ServeMux, hs []Handler, prefix, title string, optss ...AddSectionOption) (*Section, error) {
 	opts := MakeAddSectionOptions(optss...)
 
@@ -64,11 +73,10 @@ func AddSection(ctx context.Context, mux *http.ServeMux, hs []Handler, prefix, t
 	handlersFilesRoot := opts.HandlersFilesRoot()
 	sourceLinkURIRoot := opts.SourceLinkURIRoot()
 	formatHTML := opts.FormatHTML()
+	key := or.String(opts.Key(), prefix)
 
-	handleFunc := func(route string, fn func(w http.ResponseWriter, req *http.Request)) {
-		log.Printf("adding route %s", route)
-		mux.HandleFunc(route, fn)
-	}
+	handleFunc := loggingHandleFn(mux)
+
 	routesToHandlers := map[string]*handler{}
 	routesToHandlerMinimalMetadata := map[string]handlerMinimalMetadata{}
 	for _, h := range hs {
@@ -129,7 +137,7 @@ func AddSection(ctx context.Context, mux *http.ServeMux, hs []Handler, prefix, t
 			if s, ok := handlerToSource[h.name]; ok {
 				sourceURI = s.URI()
 			}
-			edit, err := genEdit(title, route, prefix, indexName, h, formatHTML, sourceURI)
+			edit, err := genEdit(title, route, prefix, indexName, h, formatHTML, sourceURI, key)
 			if err != nil {
 				return nil, errors.Errorf("error generating edit page for %s: %w", h.name, err)
 			}
@@ -166,10 +174,7 @@ func AddSection(ctx context.Context, mux *http.ServeMux, hs []Handler, prefix, t
 func GenIndex(ctx context.Context, mux *http.ServeMux, secs []Section, optss ...GenIndexOption) error {
 	opts := MakeGenIndexOptions(optss...)
 
-	handleFunc := func(route string, fn func(w http.ResponseWriter, req *http.Request)) {
-		log.Printf("adding route %s", route)
-		mux.HandleFunc(route, fn)
-	}
+	handleFunc := loggingHandleFn(mux)
 
 	all, err := genIndex(opts.Title(), opts.FooterHTML(), opts.FormatHTML(), secs)
 	if err != nil {
@@ -187,10 +192,7 @@ func GenIndex(ctx context.Context, mux *http.ServeMux, secs []Section, optss ...
 func GenAll(ctx context.Context, mux *http.ServeMux, secs []Section, optss ...GenAllOption) error {
 	opts := MakeGenAllOptions(optss...)
 
-	handleFunc := func(route string, fn func(w http.ResponseWriter, req *http.Request)) {
-		log.Printf("adding route %s", route)
-		mux.HandleFunc(route, fn)
-	}
+	handleFunc := loggingHandleFn(mux)
 
 	all, err := genAll(opts.Title(), opts.FooterHTML(), opts.FormatHTML(), secs)
 	if err != nil {
@@ -449,7 +451,7 @@ func renderTemplate(buf io.Writer, t string, name string, data interface{}) erro
 //go:embed tmpl/edit.html
 var editHTMLTemplate string
 
-func genEdit(title, route, prefix, indexName string, h *handler, format bool, sourceURI string) (string, error) {
+func genEdit(title, route, prefix, indexName string, h *handler, format bool, sourceURI string, key string) (string, error) {
 	type form struct {
 		Name     string
 		Required bool
@@ -494,6 +496,7 @@ func genEdit(title, route, prefix, indexName string, h *handler, format bool, so
 		Title     string
 		Route     string
 		Prefix    string
+		Key       string
 		IndexName string
 		SourceURI string
 		Forms     []form
@@ -501,6 +504,7 @@ func genEdit(title, route, prefix, indexName string, h *handler, format bool, so
 		Title:     title,
 		Route:     route,
 		Prefix:    prefix,
+		Key:       key,
 		IndexName: indexName,
 		SourceURI: sourceURI,
 		Forms:     forms,
@@ -516,4 +520,12 @@ func genEdit(title, route, prefix, indexName string, h *handler, format bool, so
 		s = gohtml.Format(s)
 	}
 	return s, nil
+}
+
+func Init(mux *http.ServeMux) {
+	handleFunc := loggingHandleFn(mux)
+	handleFunc("/js/fields.js", func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "text/js; charset=utf-8")
+		fmt.Fprint(w, string(fieldsJS))
+	})
 }
