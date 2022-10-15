@@ -31,7 +31,7 @@
     <form class="row g-1 needs-validation" action="{{.Route}}" method="GET">
       {{- range $i, $f := .Forms}}
       {{- if eq $f.Type "time.Duration"}}
-      <div class="col-md">
+      <div>
         <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>duration</code>
           {{if $f.Required}} (required){{end}}
           {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
@@ -41,7 +41,7 @@
       </div>
       {{- end}}      
       {{- if eq $f.Type "string"}}
-      <div class="col-md">
+      <div>
         <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>string</code>
           {{if $f.Required}} (required){{end}}
           {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
@@ -51,7 +51,7 @@
       </div>
       {{- end}}
       {{- if eq $f.Type "duration"}}
-      <div class="col-md">
+      <div>
         <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>time.Duration</code>
           {{if $f.Required}} (required){{end}}
           {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
@@ -61,7 +61,7 @@
       </div>
       {{- end}}
       {{- if eq $f.Type "duration"}}
-      <div class="col-md">
+      <div>
         <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>time.Time</code>
           {{if $f.Required}} (required){{end}}
           {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
@@ -71,7 +71,7 @@
       </div>
       {{- end}}
       {{- if eq $f.Type "int"}}
-      <div class="col-md">
+      <div>
         <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>int</code>
           {{if $f.Required}} (required){{end}}
           {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
@@ -81,7 +81,7 @@
       </div>
       {{- end}}
       {{- if eq $f.Type "float32"}}
-      <div class="col-md">
+      <div>
         <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>float32</code>
           {{if $f.Required}} (required){{end}}
           {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
@@ -91,7 +91,7 @@
       </div>
       {{- end}}
       {{- if eq $f.Type "float64"}}
-      <div class="col-md">
+      <div>
         <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>float64</code>
           {{if $f.Required}} (required){{end}}
           {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
@@ -101,7 +101,7 @@
       </div>
       {{- end}}
       {{- if eq $f.Type "bool"}}
-      <div class="col-md">
+      <div>
         <label for="validationCustom{{$i}}" class="form-label">{{$f.Name}} <code>bool</code>
           {{if $f.Required}} (required){{end}}
           {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
