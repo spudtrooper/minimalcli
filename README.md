@@ -9,9 +9,12 @@ This is a framework that allows you iterate on an API and easily create a CLI an
 Example projects using this:
 
   * [github.com/spudtrooper/apidumpsterfire](https://github.com/spudtrooper/apidumpsterfire)
+    * Deployed: [api-dumpster-fire.herokuapp.com/](https://api-dumpster-fire.herokuapp.com/)
   * [github.com/spudtrooper/opentable](https://github.com/spudtrooper/opentable)
+    * Deployed: [unofficial-opentable-api.herokuapp.com/](https://unofficial-opentable-api.herokuapp.com/)
   * [github.com/spudtrooper/opensecrets](https://github.com/spudtrooper/opensecrets)
   * [github.com/spudtrooper/resy](https://github.com/spudtrooper/resy)
+    * Deployed: [unofficial-resy-api.herokuapp.com/](https://unofficial-resy-api.herokuapp.com/)
   * [github.com/spudtrooper/scplanner](https://github.com/spudtrooper/scplanner)
 
 More details on why? [See here](https://github.com/spudtrooper/minimalcli/blob/main/use-case.md).
