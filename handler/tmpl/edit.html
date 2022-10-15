@@ -28,9 +28,6 @@
   <div class="container-fluid">
     <h1>{{.Title}}</h1>
     <h2>{{.Route}}</h2>
-    {{- range $i, $f := .Forms}}
-  </br>      {{$f.Type}} : {{$f.Name}}
-    {{- end}}
     <form class="row g-1 needs-validation" action="{{.Route}}" method="GET">
       {{- range $i, $f := .Forms}}
       {{- if eq $f.Type "time.Duration"}}
