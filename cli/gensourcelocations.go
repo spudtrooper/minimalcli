@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"sort"
 
 	"github.com/pkg/errors"
 	"github.com/spudtrooper/minimalcli/handler"
@@ -15,12 +16,20 @@ func genSourceLocations(input, sourceLinkURIRoot, output string) error {
 		return errors.Wrapf(err, "failed to find handler source locations")
 	}
 	var locs []handler.HandlerSourceLocation
-	for handler, loc := range m {
+	for h, loc := range m {
 		locs = append(locs, handler.HandlerSourceLocation{
-			Handler: handler,
+			Handler: h,
 			Loc:     loc,
 		})
 	}
+	// Sort by URI/line to make this deterministic
+	sort.Slice(locs, func(i, j int) bool {
+		a, b := locs[i], locs[j]
+		if a.Loc.Uri != b.Loc.Uri {
+			return a.Loc.Uri < b.Loc.Uri
+		}
+		return a.Loc.Line < b.Loc.Line
+	})
 	if output == "" {
 		log.Printf("handlerSourceLocations: %v\n", locs)
 	} else {

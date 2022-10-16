@@ -522,6 +522,9 @@ func genEdit(title, route, prefix, indexName string, h *handler, format bool, so
 	return s, nil
 }
 
+//go:embed js/fields.js
+var fieldsJS []byte
+
 func Init(mux *http.ServeMux) {
 	handleFunc := loggingHandleFn(mux)
 	handleFunc("/js/fields.js", func(w http.ResponseWriter, req *http.Request) {

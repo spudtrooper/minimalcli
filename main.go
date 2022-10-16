@@ -10,7 +10,7 @@ import (
 
 func main() {
 	if gitversion.CheckVersionFlag() {
-		return nil
+		return
 	}
 	check.Err(cli.Main(context.Background()))
 }
