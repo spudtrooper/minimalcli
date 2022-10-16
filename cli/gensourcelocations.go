@@ -22,14 +22,8 @@ func genSourceLocations(input, sourceLinkURIRoot, output string) error {
 			Loc:     loc,
 		})
 	}
-	// Sort by URI/line to make this deterministic
-	sort.Slice(locs, func(i, j int) bool {
-		a, b := locs[i], locs[j]
-		if a.Loc.Uri != b.Loc.Uri {
-			return a.Loc.Uri < b.Loc.Uri
-		}
-		return a.Loc.Line < b.Loc.Line
-	})
+	// Sort by handler name to make this deterministic
+	sort.Slice(locs, func(i, j int) bool { return locs[i].Handler < locs[j].Handler })
 	if output == "" {
 		log.Printf("handlerSourceLocations: %v\n", locs)
 	} else {
