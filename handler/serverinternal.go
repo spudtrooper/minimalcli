@@ -40,6 +40,7 @@ func respondWithJSON(req *http.Request, w http.ResponseWriter, obj interface{}) 
 }
 
 func responseWithJSONBytes(req *http.Request, w http.ResponseWriter, j []byte) {
+	w.Header().Set("Content-Type", "text/json; charset=utf-8")
 	fmt.Fprint(w, string(j))
 	fmt.Fprint(w, "\n")
 	if debug := getBoolURLParam(req, "debug"); debug {

@@ -21,6 +21,10 @@ import (
 	"github.com/yosssi/gohtml"
 )
 
+const (
+	renderURLParamKey = "_render"
+)
+
 type sourceLocation struct {
 	Uri  string `json:"uri"`
 	Line int    `json:"line"`
@@ -316,6 +320,16 @@ func handle(ctx context.Context, h *handler, w http.ResponseWriter, req *http.Re
 		respondWithError(w, req, err)
 		return
 	}
+	if render := getBoolURLParam(req, renderURLParamKey); render && h.renderer != nil {
+		h, err := h.renderer(res)
+		if err != nil {
+			respondWithError(w, req, err)
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		fmt.Fprint(w, string(h))
+		return
+	}
 	respondWithJSON(req, w, res)
 }
 
@@ -493,21 +507,25 @@ func genEdit(title, route, prefix, indexName string, h *handler, format bool, so
 		forms = append(forms, optionalForms...)
 	}
 	var data = struct {
-		Title     string
-		Route     string
-		Prefix    string
-		Key       string
-		IndexName string
-		SourceURI string
-		Forms     []form
+		Title          string
+		Route          string
+		Prefix         string
+		Key            string
+		IndexName      string
+		SourceURI      string
+		Forms          []form
+		HasRenderer    bool
+		RenderURLParam string
 	}{
-		Title:     title,
-		Route:     route,
-		Prefix:    prefix,
-		Key:       key,
-		IndexName: indexName,
-		SourceURI: sourceURI,
-		Forms:     forms,
+		Title:          title,
+		Route:          route,
+		Prefix:         prefix,
+		Key:            key,
+		IndexName:      indexName,
+		SourceURI:      sourceURI,
+		Forms:          forms,
+		HasRenderer:    h.renderer != nil,
+		RenderURLParam: renderURLParamKey,
 	}
 
 	var buf bytes.Buffer

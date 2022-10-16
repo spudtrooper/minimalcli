@@ -51,6 +51,12 @@
     <h1>{{.Title}}</h1>
     <h2>{{.Route}}</h2>
     <form class="row g-1 needs-validation" action="{{.Route}}" method="GET">
+      {{- if .HasRenderer }}
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="renderResultCheck" name="{{.RenderURLParam}}">
+        <label class="form-check-label" for="renderResultCheck">Render result</label>
+      </div>
+      {{- end }}
       {{- range $i, $f := .Forms}}
       {{- if eq $f.Type "string"}}
       <div>

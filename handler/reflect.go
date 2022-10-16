@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"flag"
 	"log"
 	"reflect"
 	"strings"
@@ -11,10 +10,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spudtrooper/goutil/or"
 	"github.com/spudtrooper/goutil/sets"
-)
-
-var (
-	debug = flag.Bool("minimalcli_debug", false, "enable debug logging")
 )
 
 type ctorFn func() any
@@ -37,6 +32,7 @@ func NewHandler(name string, hf handlerFn, p any, optss ...NewHandlerOption) Han
 		cliOnly:  cliOnly,
 		metadata: metadata,
 		method:   method,
+		renderer: opts.Renderer(),
 	}
 }
 

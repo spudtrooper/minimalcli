@@ -15,6 +15,7 @@ type handler struct {
 	cliOnly  bool
 	method   string
 	metadata HandlerMetadata
+	renderer Renderer
 }
 
 type HandlerMetadataParamType string
@@ -43,7 +44,9 @@ type HandlerMetadata struct {
 
 func (m HandlerMetadata) Empty() bool { return len(m.Params) == 0 }
 
-//go:generate genopts --function NewHandler cliOnly metadata:HandlerMetadata method:string extraRequiredFields:[]string
+type Renderer func(any) ([]byte, error)
+
+//go:generate genopts --function NewHandler cliOnly metadata:HandlerMetadata method:string extraRequiredFields:[]string renderer:Renderer
 func NewHandlerFromHandlerFn(name string, fn HandlerFn, optss ...NewHandlerOption) Handler {
 	opts := MakeNewHandlerOptions(optss...)
 	return &handler{
@@ -52,5 +55,6 @@ func NewHandlerFromHandlerFn(name string, fn HandlerFn, optss ...NewHandlerOptio
 		cliOnly:  opts.CliOnly(),
 		metadata: opts.Metadata(),
 		method:   or.String(opts.Method(), "GET"),
+		renderer: opts.Renderer(),
 	}
 }

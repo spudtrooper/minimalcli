@@ -12,6 +12,8 @@ type NewHandlerOptions interface {
 	HasMethod() bool
 	ExtraRequiredFields() []string
 	HasExtraRequiredFields() bool
+	Renderer() Renderer
+	HasRenderer() bool
 }
 
 func NewHandlerCliOnly(cliOnly bool) NewHandlerOption {
@@ -78,6 +80,22 @@ func NewHandlerExtraRequiredFieldsFlag(extraRequiredFields *[]string) NewHandler
 	}
 }
 
+func NewHandlerRenderer(renderer Renderer) NewHandlerOption {
+	return func(opts *newHandlerOptionImpl) {
+		opts.has_renderer = true
+		opts.renderer = renderer
+	}
+}
+func NewHandlerRendererFlag(renderer *Renderer) NewHandlerOption {
+	return func(opts *newHandlerOptionImpl) {
+		if renderer == nil {
+			return
+		}
+		opts.has_renderer = true
+		opts.renderer = *renderer
+	}
+}
+
 type newHandlerOptionImpl struct {
 	cliOnly                 bool
 	has_cliOnly             bool
@@ -87,6 +105,8 @@ type newHandlerOptionImpl struct {
 	has_method              bool
 	extraRequiredFields     []string
 	has_extraRequiredFields bool
+	renderer                Renderer
+	has_renderer            bool
 }
 
 func (n *newHandlerOptionImpl) CliOnly() bool                 { return n.cliOnly }
@@ -97,6 +117,8 @@ func (n *newHandlerOptionImpl) Method() string                { return n.method 
 func (n *newHandlerOptionImpl) HasMethod() bool               { return n.has_method }
 func (n *newHandlerOptionImpl) ExtraRequiredFields() []string { return n.extraRequiredFields }
 func (n *newHandlerOptionImpl) HasExtraRequiredFields() bool  { return n.has_extraRequiredFields }
+func (n *newHandlerOptionImpl) Renderer() Renderer            { return n.renderer }
+func (n *newHandlerOptionImpl) HasRenderer() bool             { return n.has_renderer }
 
 func makeNewHandlerOptionImpl(opts ...NewHandlerOption) *newHandlerOptionImpl {
 	res := &newHandlerOptionImpl{}
