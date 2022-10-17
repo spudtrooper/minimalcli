@@ -1,7 +1,14 @@
 // DO NOT EDIT MANUALLY: Generated from https://github.com/spudtrooper/genopts
 package app
 
-type MakeOption func(*makeOptionImpl)
+import "fmt"
+
+type MakeOption struct {
+	f func(*makeOptionImpl)
+	s string
+}
+
+func (o MakeOption) String() string { return o.s }
 
 type MakeOptions interface {
 	PrintBanner() bool
@@ -9,19 +16,19 @@ type MakeOptions interface {
 }
 
 func MakePrintBanner(printBanner bool) MakeOption {
-	return func(opts *makeOptionImpl) {
+	return MakeOption{func(opts *makeOptionImpl) {
 		opts.has_printBanner = true
 		opts.printBanner = printBanner
-	}
+	}, fmt.Sprintf("app.MakePrintBanner(bool %+v)}", printBanner)}
 }
 func MakePrintBannerFlag(printBanner *bool) MakeOption {
-	return func(opts *makeOptionImpl) {
+	return MakeOption{func(opts *makeOptionImpl) {
 		if printBanner == nil {
 			return
 		}
 		opts.has_printBanner = true
 		opts.printBanner = *printBanner
-	}
+	}, fmt.Sprintf("app.MakePrintBanner(bool %+v)}", printBanner)}
 }
 
 type makeOptionImpl struct {
@@ -35,7 +42,7 @@ func (m *makeOptionImpl) HasPrintBanner() bool { return m.has_printBanner }
 func makeMakeOptionImpl(opts ...MakeOption) *makeOptionImpl {
 	res := &makeOptionImpl{}
 	for _, opt := range opts {
-		opt(res)
+		opt.f(res)
 	}
 	return res
 }

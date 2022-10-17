@@ -155,12 +155,9 @@
         <input class="form-check-input persist-check" type="checkbox" value="" id="persist{{$f.Name}}"
           data-input-id="validationCustom{{$f.Name}}" data-input-name="{{$f.Name}}">
         <label class="form-check-label" for="persist{{$f.Name}}">Persist</label>
-        <select name="{{$f.Name}}" class="form-select" id="validationCustom{{$f.Name}}">
-          <option selected disabled value="">Choose...</option>
-          <option></option>
-          <option value="true">True</option>
-          <option value="false">False</option>
-        </select>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" name="{{$f.Name}}" id="validationCustom{{$f.Name}}">
+        </div>
         <div class="invalid-feedback">
           Please select a valid {{$f.Name}}.
         </div>

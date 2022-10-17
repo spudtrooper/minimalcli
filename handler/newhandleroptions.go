@@ -1,7 +1,14 @@
 // DO NOT EDIT MANUALLY: Generated from https://github.com/spudtrooper/genopts
 package handler
 
-type NewHandlerOption func(*newHandlerOptionImpl)
+import "fmt"
+
+type NewHandlerOption struct {
+	f func(*newHandlerOptionImpl)
+	s string
+}
+
+func (o NewHandlerOption) String() string { return o.s }
 
 type NewHandlerOptions interface {
 	CliOnly() bool
@@ -17,83 +24,83 @@ type NewHandlerOptions interface {
 }
 
 func NewHandlerCliOnly(cliOnly bool) NewHandlerOption {
-	return func(opts *newHandlerOptionImpl) {
+	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
 		opts.has_cliOnly = true
 		opts.cliOnly = cliOnly
-	}
+	}, fmt.Sprintf("handler.NewHandlerCliOnly(bool %+v)}", cliOnly)}
 }
 func NewHandlerCliOnlyFlag(cliOnly *bool) NewHandlerOption {
-	return func(opts *newHandlerOptionImpl) {
+	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
 		if cliOnly == nil {
 			return
 		}
 		opts.has_cliOnly = true
 		opts.cliOnly = *cliOnly
-	}
+	}, fmt.Sprintf("handler.NewHandlerCliOnly(bool %+v)}", cliOnly)}
 }
 
 func NewHandlerMetadata(metadata HandlerMetadata) NewHandlerOption {
-	return func(opts *newHandlerOptionImpl) {
+	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
 		opts.has_metadata = true
 		opts.metadata = metadata
-	}
+	}, fmt.Sprintf("handler.NewHandlerMetadata(HandlerMetadata %+v)}", metadata)}
 }
 func NewHandlerMetadataFlag(metadata *HandlerMetadata) NewHandlerOption {
-	return func(opts *newHandlerOptionImpl) {
+	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
 		if metadata == nil {
 			return
 		}
 		opts.has_metadata = true
 		opts.metadata = *metadata
-	}
+	}, fmt.Sprintf("handler.NewHandlerMetadata(HandlerMetadata %+v)}", metadata)}
 }
 
 func NewHandlerMethod(method string) NewHandlerOption {
-	return func(opts *newHandlerOptionImpl) {
+	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
 		opts.has_method = true
 		opts.method = method
-	}
+	}, fmt.Sprintf("handler.NewHandlerMethod(string %+v)}", method)}
 }
 func NewHandlerMethodFlag(method *string) NewHandlerOption {
-	return func(opts *newHandlerOptionImpl) {
+	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
 		if method == nil {
 			return
 		}
 		opts.has_method = true
 		opts.method = *method
-	}
+	}, fmt.Sprintf("handler.NewHandlerMethod(string %+v)}", method)}
 }
 
 func NewHandlerExtraRequiredFields(extraRequiredFields []string) NewHandlerOption {
-	return func(opts *newHandlerOptionImpl) {
+	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
 		opts.has_extraRequiredFields = true
 		opts.extraRequiredFields = extraRequiredFields
-	}
+	}, fmt.Sprintf("handler.NewHandlerExtraRequiredFields([]string %+v)}", extraRequiredFields)}
 }
 func NewHandlerExtraRequiredFieldsFlag(extraRequiredFields *[]string) NewHandlerOption {
-	return func(opts *newHandlerOptionImpl) {
+	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
 		if extraRequiredFields == nil {
 			return
 		}
 		opts.has_extraRequiredFields = true
 		opts.extraRequiredFields = *extraRequiredFields
-	}
+	}, fmt.Sprintf("handler.NewHandlerExtraRequiredFields([]string %+v)}", extraRequiredFields)}
 }
 
 func NewHandlerRenderer(renderer Renderer) NewHandlerOption {
-	return func(opts *newHandlerOptionImpl) {
+	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
 		opts.has_renderer = true
 		opts.renderer = renderer
-	}
+	}, fmt.Sprintf("handler.NewHandlerRenderer(Renderer %+v)}", renderer)}
 }
 func NewHandlerRendererFlag(renderer *Renderer) NewHandlerOption {
-	return func(opts *newHandlerOptionImpl) {
+	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
 		if renderer == nil {
 			return
 		}
 		opts.has_renderer = true
 		opts.renderer = *renderer
-	}
+	}, fmt.Sprintf("handler.NewHandlerRenderer(Renderer %+v)}", renderer)}
 }
 
 type newHandlerOptionImpl struct {
@@ -123,7 +130,7 @@ func (n *newHandlerOptionImpl) HasRenderer() bool             { return n.has_ren
 func makeNewHandlerOptionImpl(opts ...NewHandlerOption) *newHandlerOptionImpl {
 	res := &newHandlerOptionImpl{}
 	for _, opt := range opts {
-		opt(res)
+		opt.f(res)
 	}
 	return res
 }

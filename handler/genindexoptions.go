@@ -2,10 +2,17 @@
 package handler
 
 import (
+	"fmt"
+
 	"github.com/spudtrooper/goutil/or"
 )
 
-type GenIndexOption func(*genIndexOptionImpl)
+type GenIndexOption struct {
+	f func(*genIndexOptionImpl)
+	s string
+}
+
+func (o GenIndexOption) String() string { return o.s }
 
 type GenIndexOptions interface {
 	Title() string
@@ -19,67 +26,67 @@ type GenIndexOptions interface {
 }
 
 func GenIndexTitle(title string) GenIndexOption {
-	return func(opts *genIndexOptionImpl) {
+	return GenIndexOption{func(opts *genIndexOptionImpl) {
 		opts.has_title = true
 		opts.title = title
-	}
+	}, fmt.Sprintf("handler.GenIndexTitle(string %+v)}", title)}
 }
 func GenIndexTitleFlag(title *string) GenIndexOption {
-	return func(opts *genIndexOptionImpl) {
+	return GenIndexOption{func(opts *genIndexOptionImpl) {
 		if title == nil {
 			return
 		}
 		opts.has_title = true
 		opts.title = *title
-	}
+	}, fmt.Sprintf("handler.GenIndexTitle(string %+v)}", title)}
 }
 
 func GenIndexFooterHTML(footerHTML string) GenIndexOption {
-	return func(opts *genIndexOptionImpl) {
+	return GenIndexOption{func(opts *genIndexOptionImpl) {
 		opts.has_footerHTML = true
 		opts.footerHTML = footerHTML
-	}
+	}, fmt.Sprintf("handler.GenIndexFooterHTML(string %+v)}", footerHTML)}
 }
 func GenIndexFooterHTMLFlag(footerHTML *string) GenIndexOption {
-	return func(opts *genIndexOptionImpl) {
+	return GenIndexOption{func(opts *genIndexOptionImpl) {
 		if footerHTML == nil {
 			return
 		}
 		opts.has_footerHTML = true
 		opts.footerHTML = *footerHTML
-	}
+	}, fmt.Sprintf("handler.GenIndexFooterHTML(string %+v)}", footerHTML)}
 }
 
 func GenIndexFormatHTML(formatHTML bool) GenIndexOption {
-	return func(opts *genIndexOptionImpl) {
+	return GenIndexOption{func(opts *genIndexOptionImpl) {
 		opts.has_formatHTML = true
 		opts.formatHTML = formatHTML
-	}
+	}, fmt.Sprintf("handler.GenIndexFormatHTML(bool %+v)}", formatHTML)}
 }
 func GenIndexFormatHTMLFlag(formatHTML *bool) GenIndexOption {
-	return func(opts *genIndexOptionImpl) {
+	return GenIndexOption{func(opts *genIndexOptionImpl) {
 		if formatHTML == nil {
 			return
 		}
 		opts.has_formatHTML = true
 		opts.formatHTML = *formatHTML
-	}
+	}, fmt.Sprintf("handler.GenIndexFormatHTML(bool %+v)}", formatHTML)}
 }
 
 func GenIndexRoute(route string) GenIndexOption {
-	return func(opts *genIndexOptionImpl) {
+	return GenIndexOption{func(opts *genIndexOptionImpl) {
 		opts.has_route = true
 		opts.route = route
-	}
+	}, fmt.Sprintf("handler.GenIndexRoute(string %+v)}", route)}
 }
 func GenIndexRouteFlag(route *string) GenIndexOption {
-	return func(opts *genIndexOptionImpl) {
+	return GenIndexOption{func(opts *genIndexOptionImpl) {
 		if route == nil {
 			return
 		}
 		opts.has_route = true
 		opts.route = *route
-	}
+	}, fmt.Sprintf("handler.GenIndexRoute(string %+v)}", route)}
 }
 
 type genIndexOptionImpl struct {
@@ -105,7 +112,7 @@ func (g *genIndexOptionImpl) HasRoute() bool      { return g.has_route }
 func makeGenIndexOptionImpl(opts ...GenIndexOption) *genIndexOptionImpl {
 	res := &genIndexOptionImpl{}
 	for _, opt := range opts {
-		opt(res)
+		opt.f(res)
 	}
 	return res
 }

@@ -175,7 +175,9 @@ func setValuesOnParams(ctx EvalContext, pCtor ctorFn, fs []reflect.StructField) 
 				f.SetInt(int64(ctx.Int(nameInCtx)))
 			}
 		case reflect.Bool:
-			f.SetBool(ctx.Bool(nameInCtx))
+			v := ctx.Bool(nameInCtx)
+			log.Printf("setting %q to %v", nameInCtx, v)
+			f.SetBool(v)
 		case reflect.Float32:
 			f.SetFloat(float64(ctx.Float32(nameInCtx)))
 		case reflect.Float64:

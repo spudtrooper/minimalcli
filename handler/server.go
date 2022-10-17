@@ -91,6 +91,7 @@ func AddSection(ctx context.Context, mux *http.ServeMux, hs []Handler, prefix, t
 		route := fmt.Sprintf("/%s/%s", prefix, strings.ToLower(h.name))
 		routesToHandlers[route] = h
 		handleFunc(route, func(w http.ResponseWriter, req *http.Request) {
+			log.Printf("handling %s for handler %s", req.URL.Path, h.name)
 			handle(ctx, h, w, req)
 		})
 		routesToHandlerMinimalMetadata[route] = handlerMinimalMetadata{
