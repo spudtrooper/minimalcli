@@ -16,6 +16,11 @@
 
 <body>
   <div class="container-fluid">
+    <nav class="nav">
+      <a class="nav-link " href="/">Home</a>
+      <a class="nav-link disabled" href="#">&#187;</a>
+      <a class="nav-link active" href="/{{$prefix}}/">{{$prefix}}</a>
+    </nav>
     <h1>{{.Title}}</h1>
     <ul style="list-style: none; padding-left:1em;">
       {{- range .Routes}}

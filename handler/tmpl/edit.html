@@ -48,6 +48,16 @@
 
 <body>
   <div class="container-fluid">
+    <nav class="nav">
+      <a class="nav-link" href="/">Home</a>
+      <a class="nav-link disabled" href="#">&#187;</a>
+      <a class="nav-link" href="/{{$prefix}}/{{$indexName}}">{{$prefix}}</a>
+      <a class="nav-link disabled" href="#">&#187;</a>
+      <a class="nav-link active" href="#">{{.Route}}</a>
+      {{- if ne .SourceURI "" }}
+      <a class="nav-link" target="_" href="//{{.SourceURI}}">source</a>
+      {{- end }}
+    </nav>
     <h1>{{.Title}}</h1>
     <h2>{{.Route}}</h2>
     <form class="row g-1 needs-validation" action="{{.Route}}" method="GET">
@@ -162,12 +172,6 @@
         <button class="btn btn-primary" type="submit" id="submit">Submit</button>
       </div>
     </form>
-    {{- if ne .SourceURI ""}}
-    <br />
-    <a target="_" href="//{{.SourceURI}}">Source</a>
-    {{- end}}
-    <br />
-    <a href="/{{$prefix}}/{{$indexName}}">Home</a>
     <br /><br />
     <button class="btn btn-danger" type="submit" id="clear-field-history-btn">Clear field history</button>
   </div>

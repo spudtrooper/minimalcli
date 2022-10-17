@@ -210,10 +210,8 @@ func GenAll(ctx context.Context, mux *http.ServeMux, secs []Section, optss ...Ge
 	return nil
 }
 
-var (
-	//go:embed tmpl/index-summary.html
-	indexSummaryHTMLTemplate string
-)
+//go:embed tmpl/index-summary.html
+var indexSummaryHTMLTemplate string
 
 func genIndex(title, footerHTML string, format bool, secs []Section) (string, error) {
 	type sec struct {
@@ -251,10 +249,8 @@ func genIndex(title, footerHTML string, format bool, secs []Section) (string, er
 	return s, nil
 }
 
-var (
-	//go:embed tmpl/index-all.html
-	indexAllHTMLTemplate string
-)
+//go:embed tmpl/index-all.html
+var indexAllHTMLTemplate string
 
 func genAll(title, footerHTML string, format bool, secs []Section) (string, error) {
 	var sections []sectionIndex
@@ -309,6 +305,9 @@ func AddHandlers(ctx context.Context, mux *http.ServeMux, hs []Handler, optss ..
 	return nil
 }
 
+//go:embed tmpl/fragment-wrapper.html
+var fragmentWrapperTmpl string
+
 func handle(ctx context.Context, h *handler, w http.ResponseWriter, req *http.Request) {
 	if !strings.EqualFold(req.Method, h.method) {
 		respondWithErrorString(w, req, "method %s not supported, only %s supported", req.Method, h.method)
@@ -321,13 +320,29 @@ func handle(ctx context.Context, h *handler, w http.ResponseWriter, req *http.Re
 		return
 	}
 	if render := getBoolURLParam(req, renderURLParamKey); render && h.renderer != nil {
-		h, err := h.renderer(res)
+		htmlBytes, config, err := h.renderer(res)
 		if err != nil {
 			respondWithError(w, req, err)
 			return
 		}
+		html := string(htmlBytes)
+		if config.IsFragment {
+			var data = struct {
+				Title   string
+				Content string
+			}{
+				Title:   h.name,
+				Content: html,
+			}
+			var buf bytes.Buffer
+			if err := renderTemplate(&buf, fragmentWrapperTmpl, "fragment", data); err != nil {
+				respondWithError(w, req, err)
+				return
+			}
+			html = buf.String()
+		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprint(w, string(h))
+		fmt.Fprint(w, html)
 		return
 	}
 	respondWithJSON(req, w, res)

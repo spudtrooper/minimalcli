@@ -44,7 +44,13 @@ type HandlerMetadata struct {
 
 func (m HandlerMetadata) Empty() bool { return len(m.Params) == 0 }
 
-type Renderer func(any) ([]byte, error)
+type RendererConfig struct {
+	// Whether the payload returned does not contain full HTML and should
+	// be inserted into HTML before being shown.
+	IsFragment bool
+}
+
+type Renderer func(any) ([]byte, RendererConfig, error)
 
 //go:generate genopts --function NewHandler cliOnly metadata:HandlerMetadata method:string extraRequiredFields:[]string renderer:Renderer
 func NewHandlerFromHandlerFn(name string, fn HandlerFn, optss ...NewHandlerOption) Handler {
