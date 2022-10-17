@@ -58,7 +58,7 @@ func typeFromKind(f reflect.StructField) HandlerMetadataParamType {
 	case reflect.Float64:
 		return HandlerMetadataParamTypeFloat64
 	case reflect.Struct:
-		if f.Type.Name() == "time.Time" {
+		if f.Type.String() == "time.Time" {
 			return HandlerMetadataParamTypeTime
 		}
 	default:
