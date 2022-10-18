@@ -289,16 +289,16 @@ func (a *addHandlersOptionImpl) HasSerializedSourceLocations() bool {
 // ToAddSectionOptions converts AddHandlersOption to an array of AddSectionOption
 func (o *addHandlersOptionImpl) ToAddSectionOptions() []AddSectionOption {
 	return []AddSectionOption{
-		AddSectionIndexName(o.IndexName()),
 		AddSectionSourceLinks(o.SourceLinks()),
+		AddSectionHandlersFiles(o.HandlersFiles()),
 		AddSectionHandlersFilesRoot(o.HandlersFilesRoot()),
-		AddSectionSourceLinkURIRoot(o.SourceLinkURIRoot()),
-		AddSectionFormatHTML(o.FormatHTML()),
+		AddSectionKey(o.Key()),
 		AddSectionSerializedSourceLocations(o.SerializedSourceLocations()),
+		AddSectionIndexName(o.IndexName()),
 		AddSectionEditName(o.EditName()),
 		AddSectionFooterHTML(o.FooterHTML()),
-		AddSectionHandlersFiles(o.HandlersFiles()),
-		AddSectionKey(o.Key()),
+		AddSectionSourceLinkURIRoot(o.SourceLinkURIRoot()),
+		AddSectionFormatHTML(o.FormatHTML()),
 	}
 }
 
