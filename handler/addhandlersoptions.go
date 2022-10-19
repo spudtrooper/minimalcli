@@ -291,14 +291,14 @@ func (o *addHandlersOptionImpl) ToAddSectionOptions() []AddSectionOption {
 	return []AddSectionOption{
 		AddSectionFooterHTML(o.FooterHTML()),
 		AddSectionSourceLinks(o.SourceLinks()),
-		AddSectionHandlersFiles(o.HandlersFiles()),
-		AddSectionKey(o.Key()),
-		AddSectionIndexName(o.IndexName()),
-		AddSectionEditName(o.EditName()),
 		AddSectionHandlersFilesRoot(o.HandlersFilesRoot()),
 		AddSectionSourceLinkURIRoot(o.SourceLinkURIRoot()),
-		AddSectionFormatHTML(o.FormatHTML()),
+		AddSectionKey(o.Key()),
 		AddSectionSerializedSourceLocations(o.SerializedSourceLocations()),
+		AddSectionIndexName(o.IndexName()),
+		AddSectionEditName(o.EditName()),
+		AddSectionHandlersFiles(o.HandlersFiles()),
+		AddSectionFormatHTML(o.FormatHTML()),
 	}
 }
 
