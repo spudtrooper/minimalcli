@@ -15,30 +15,14 @@ type GenIndexOption struct {
 func (o GenIndexOption) String() string { return o.s }
 
 type GenIndexOptions interface {
-	Title() string
-	HasTitle() bool
 	FooterHTML() string
 	HasFooterHTML() bool
 	FormatHTML() bool
 	HasFormatHTML() bool
 	Route() string
 	HasRoute() bool
-}
-
-func GenIndexTitle(title string) GenIndexOption {
-	return GenIndexOption{func(opts *genIndexOptionImpl) {
-		opts.has_title = true
-		opts.title = title
-	}, fmt.Sprintf("handler.GenIndexTitle(string %+v)}", title)}
-}
-func GenIndexTitleFlag(title *string) GenIndexOption {
-	return GenIndexOption{func(opts *genIndexOptionImpl) {
-		if title == nil {
-			return
-		}
-		opts.has_title = true
-		opts.title = *title
-	}, fmt.Sprintf("handler.GenIndexTitle(string %+v)}", title)}
+	Title() string
+	HasTitle() bool
 }
 
 func GenIndexFooterHTML(footerHTML string) GenIndexOption {
@@ -89,6 +73,22 @@ func GenIndexRouteFlag(route *string) GenIndexOption {
 	}, fmt.Sprintf("handler.GenIndexRoute(string %+v)}", route)}
 }
 
+func GenIndexTitle(title string) GenIndexOption {
+	return GenIndexOption{func(opts *genIndexOptionImpl) {
+		opts.has_title = true
+		opts.title = title
+	}, fmt.Sprintf("handler.GenIndexTitle(string %+v)}", title)}
+}
+func GenIndexTitleFlag(title *string) GenIndexOption {
+	return GenIndexOption{func(opts *genIndexOptionImpl) {
+		if title == nil {
+			return
+		}
+		opts.has_title = true
+		opts.title = *title
+	}, fmt.Sprintf("handler.GenIndexTitle(string %+v)}", title)}
+}
+
 type genIndexOptionImpl struct {
 	title          string
 	has_title      bool
@@ -100,14 +100,14 @@ type genIndexOptionImpl struct {
 	has_route      bool
 }
 
-func (g *genIndexOptionImpl) Title() string       { return or.String(g.title, "Index") }
-func (g *genIndexOptionImpl) HasTitle() bool      { return g.has_title }
 func (g *genIndexOptionImpl) FooterHTML() string  { return g.footerHTML }
 func (g *genIndexOptionImpl) HasFooterHTML() bool { return g.has_footerHTML }
 func (g *genIndexOptionImpl) FormatHTML() bool    { return g.formatHTML }
 func (g *genIndexOptionImpl) HasFormatHTML() bool { return g.has_formatHTML }
 func (g *genIndexOptionImpl) Route() string       { return or.String(g.route, "/") }
 func (g *genIndexOptionImpl) HasRoute() bool      { return g.has_route }
+func (g *genIndexOptionImpl) Title() string       { return or.String(g.title, "Index") }
+func (g *genIndexOptionImpl) HasTitle() bool      { return g.has_title }
 
 func makeGenIndexOptionImpl(opts ...GenIndexOption) *genIndexOptionImpl {
 	res := &genIndexOptionImpl{}

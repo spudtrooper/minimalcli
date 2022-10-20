@@ -13,12 +13,12 @@ func (o NewHandlerOption) String() string { return o.s }
 type NewHandlerOptions interface {
 	CliOnly() bool
 	HasCliOnly() bool
+	ExtraRequiredFields() []string
+	HasExtraRequiredFields() bool
 	Metadata() HandlerMetadata
 	HasMetadata() bool
 	Method() string
 	HasMethod() bool
-	ExtraRequiredFields() []string
-	HasExtraRequiredFields() bool
 	Renderer() Renderer
 	HasRenderer() bool
 }
@@ -37,6 +37,22 @@ func NewHandlerCliOnlyFlag(cliOnly *bool) NewHandlerOption {
 		opts.has_cliOnly = true
 		opts.cliOnly = *cliOnly
 	}, fmt.Sprintf("handler.NewHandlerCliOnly(bool %+v)}", cliOnly)}
+}
+
+func NewHandlerExtraRequiredFields(extraRequiredFields []string) NewHandlerOption {
+	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
+		opts.has_extraRequiredFields = true
+		opts.extraRequiredFields = extraRequiredFields
+	}, fmt.Sprintf("handler.NewHandlerExtraRequiredFields([]string %+v)}", extraRequiredFields)}
+}
+func NewHandlerExtraRequiredFieldsFlag(extraRequiredFields *[]string) NewHandlerOption {
+	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
+		if extraRequiredFields == nil {
+			return
+		}
+		opts.has_extraRequiredFields = true
+		opts.extraRequiredFields = *extraRequiredFields
+	}, fmt.Sprintf("handler.NewHandlerExtraRequiredFields([]string %+v)}", extraRequiredFields)}
 }
 
 func NewHandlerMetadata(metadata HandlerMetadata) NewHandlerOption {
@@ -71,22 +87,6 @@ func NewHandlerMethodFlag(method *string) NewHandlerOption {
 	}, fmt.Sprintf("handler.NewHandlerMethod(string %+v)}", method)}
 }
 
-func NewHandlerExtraRequiredFields(extraRequiredFields []string) NewHandlerOption {
-	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
-		opts.has_extraRequiredFields = true
-		opts.extraRequiredFields = extraRequiredFields
-	}, fmt.Sprintf("handler.NewHandlerExtraRequiredFields([]string %+v)}", extraRequiredFields)}
-}
-func NewHandlerExtraRequiredFieldsFlag(extraRequiredFields *[]string) NewHandlerOption {
-	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
-		if extraRequiredFields == nil {
-			return
-		}
-		opts.has_extraRequiredFields = true
-		opts.extraRequiredFields = *extraRequiredFields
-	}, fmt.Sprintf("handler.NewHandlerExtraRequiredFields([]string %+v)}", extraRequiredFields)}
-}
-
 func NewHandlerRenderer(renderer Renderer) NewHandlerOption {
 	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
 		opts.has_renderer = true
@@ -118,12 +118,12 @@ type newHandlerOptionImpl struct {
 
 func (n *newHandlerOptionImpl) CliOnly() bool                 { return n.cliOnly }
 func (n *newHandlerOptionImpl) HasCliOnly() bool              { return n.has_cliOnly }
+func (n *newHandlerOptionImpl) ExtraRequiredFields() []string { return n.extraRequiredFields }
+func (n *newHandlerOptionImpl) HasExtraRequiredFields() bool  { return n.has_extraRequiredFields }
 func (n *newHandlerOptionImpl) Metadata() HandlerMetadata     { return n.metadata }
 func (n *newHandlerOptionImpl) HasMetadata() bool             { return n.has_metadata }
 func (n *newHandlerOptionImpl) Method() string                { return n.method }
 func (n *newHandlerOptionImpl) HasMethod() bool               { return n.has_method }
-func (n *newHandlerOptionImpl) ExtraRequiredFields() []string { return n.extraRequiredFields }
-func (n *newHandlerOptionImpl) HasExtraRequiredFields() bool  { return n.has_extraRequiredFields }
 func (n *newHandlerOptionImpl) Renderer() Renderer            { return n.renderer }
 func (n *newHandlerOptionImpl) HasRenderer() bool             { return n.has_renderer }
 

@@ -15,30 +15,14 @@ type GenAllOption struct {
 func (o GenAllOption) String() string { return o.s }
 
 type GenAllOptions interface {
-	Title() string
-	HasTitle() bool
 	FooterHTML() string
 	HasFooterHTML() bool
 	FormatHTML() bool
 	HasFormatHTML() bool
 	Route() string
 	HasRoute() bool
-}
-
-func GenAllTitle(title string) GenAllOption {
-	return GenAllOption{func(opts *genAllOptionImpl) {
-		opts.has_title = true
-		opts.title = title
-	}, fmt.Sprintf("handler.GenAllTitle(string %+v)}", title)}
-}
-func GenAllTitleFlag(title *string) GenAllOption {
-	return GenAllOption{func(opts *genAllOptionImpl) {
-		if title == nil {
-			return
-		}
-		opts.has_title = true
-		opts.title = *title
-	}, fmt.Sprintf("handler.GenAllTitle(string %+v)}", title)}
+	Title() string
+	HasTitle() bool
 }
 
 func GenAllFooterHTML(footerHTML string) GenAllOption {
@@ -89,6 +73,22 @@ func GenAllRouteFlag(route *string) GenAllOption {
 	}, fmt.Sprintf("handler.GenAllRoute(string %+v)}", route)}
 }
 
+func GenAllTitle(title string) GenAllOption {
+	return GenAllOption{func(opts *genAllOptionImpl) {
+		opts.has_title = true
+		opts.title = title
+	}, fmt.Sprintf("handler.GenAllTitle(string %+v)}", title)}
+}
+func GenAllTitleFlag(title *string) GenAllOption {
+	return GenAllOption{func(opts *genAllOptionImpl) {
+		if title == nil {
+			return
+		}
+		opts.has_title = true
+		opts.title = *title
+	}, fmt.Sprintf("handler.GenAllTitle(string %+v)}", title)}
+}
+
 type genAllOptionImpl struct {
 	title          string
 	has_title      bool
@@ -100,14 +100,14 @@ type genAllOptionImpl struct {
 	has_route      bool
 }
 
-func (g *genAllOptionImpl) Title() string       { return or.String(g.title, "All") }
-func (g *genAllOptionImpl) HasTitle() bool      { return g.has_title }
 func (g *genAllOptionImpl) FooterHTML() string  { return g.footerHTML }
 func (g *genAllOptionImpl) HasFooterHTML() bool { return g.has_footerHTML }
 func (g *genAllOptionImpl) FormatHTML() bool    { return g.formatHTML }
 func (g *genAllOptionImpl) HasFormatHTML() bool { return g.has_formatHTML }
 func (g *genAllOptionImpl) Route() string       { return or.String(g.route, "/_all") }
 func (g *genAllOptionImpl) HasRoute() bool      { return g.has_route }
+func (g *genAllOptionImpl) Title() string       { return or.String(g.title, "All") }
+func (g *genAllOptionImpl) HasTitle() bool      { return g.has_title }
 
 func makeGenAllOptionImpl(opts ...GenAllOption) *genAllOptionImpl {
 	res := &genAllOptionImpl{}

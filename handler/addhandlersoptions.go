@@ -11,79 +11,31 @@ type AddHandlersOption struct {
 func (o AddHandlersOption) String() string { return o.s }
 
 type AddHandlersOptions interface {
-	IndexTitle() string
-	HasIndexTitle() bool
-	Prefix() string
-	HasPrefix() bool
-	IndexName() string
-	HasIndexName() bool
 	EditName() string
 	HasEditName() bool
 	FooterHTML() string
 	HasFooterHTML() bool
-	SourceLinks() bool
-	HasSourceLinks() bool
+	FormatHTML() bool
+	HasFormatHTML() bool
 	HandlersFiles() []string
 	HasHandlersFiles() bool
 	HandlersFilesRoot() string
 	HasHandlersFilesRoot() bool
-	SourceLinkURIRoot() string
-	HasSourceLinkURIRoot() bool
-	FormatHTML() bool
-	HasFormatHTML() bool
+	IndexName() string
+	HasIndexName() bool
+	IndexTitle() string
+	HasIndexTitle() bool
 	Key() string
 	HasKey() bool
+	Prefix() string
+	HasPrefix() bool
 	SerializedSourceLocations() []byte
 	HasSerializedSourceLocations() bool
+	SourceLinkURIRoot() string
+	HasSourceLinkURIRoot() bool
+	SourceLinks() bool
+	HasSourceLinks() bool
 	ToAddSectionOptions() []AddSectionOption
-}
-
-func AddHandlersIndexTitle(indexTitle string) AddHandlersOption {
-	return AddHandlersOption{func(opts *addHandlersOptionImpl) {
-		opts.has_indexTitle = true
-		opts.indexTitle = indexTitle
-	}, fmt.Sprintf("handler.AddHandlersIndexTitle(string %+v)}", indexTitle)}
-}
-func AddHandlersIndexTitleFlag(indexTitle *string) AddHandlersOption {
-	return AddHandlersOption{func(opts *addHandlersOptionImpl) {
-		if indexTitle == nil {
-			return
-		}
-		opts.has_indexTitle = true
-		opts.indexTitle = *indexTitle
-	}, fmt.Sprintf("handler.AddHandlersIndexTitle(string %+v)}", indexTitle)}
-}
-
-func AddHandlersPrefix(prefix string) AddHandlersOption {
-	return AddHandlersOption{func(opts *addHandlersOptionImpl) {
-		opts.has_prefix = true
-		opts.prefix = prefix
-	}, fmt.Sprintf("handler.AddHandlersPrefix(string %+v)}", prefix)}
-}
-func AddHandlersPrefixFlag(prefix *string) AddHandlersOption {
-	return AddHandlersOption{func(opts *addHandlersOptionImpl) {
-		if prefix == nil {
-			return
-		}
-		opts.has_prefix = true
-		opts.prefix = *prefix
-	}, fmt.Sprintf("handler.AddHandlersPrefix(string %+v)}", prefix)}
-}
-
-func AddHandlersIndexName(indexName string) AddHandlersOption {
-	return AddHandlersOption{func(opts *addHandlersOptionImpl) {
-		opts.has_indexName = true
-		opts.indexName = indexName
-	}, fmt.Sprintf("handler.AddHandlersIndexName(string %+v)}", indexName)}
-}
-func AddHandlersIndexNameFlag(indexName *string) AddHandlersOption {
-	return AddHandlersOption{func(opts *addHandlersOptionImpl) {
-		if indexName == nil {
-			return
-		}
-		opts.has_indexName = true
-		opts.indexName = *indexName
-	}, fmt.Sprintf("handler.AddHandlersIndexName(string %+v)}", indexName)}
 }
 
 func AddHandlersEditName(editName string) AddHandlersOption {
@@ -118,20 +70,20 @@ func AddHandlersFooterHTMLFlag(footerHTML *string) AddHandlersOption {
 	}, fmt.Sprintf("handler.AddHandlersFooterHTML(string %+v)}", footerHTML)}
 }
 
-func AddHandlersSourceLinks(sourceLinks bool) AddHandlersOption {
+func AddHandlersFormatHTML(formatHTML bool) AddHandlersOption {
 	return AddHandlersOption{func(opts *addHandlersOptionImpl) {
-		opts.has_sourceLinks = true
-		opts.sourceLinks = sourceLinks
-	}, fmt.Sprintf("handler.AddHandlersSourceLinks(bool %+v)}", sourceLinks)}
+		opts.has_formatHTML = true
+		opts.formatHTML = formatHTML
+	}, fmt.Sprintf("handler.AddHandlersFormatHTML(bool %+v)}", formatHTML)}
 }
-func AddHandlersSourceLinksFlag(sourceLinks *bool) AddHandlersOption {
+func AddHandlersFormatHTMLFlag(formatHTML *bool) AddHandlersOption {
 	return AddHandlersOption{func(opts *addHandlersOptionImpl) {
-		if sourceLinks == nil {
+		if formatHTML == nil {
 			return
 		}
-		opts.has_sourceLinks = true
-		opts.sourceLinks = *sourceLinks
-	}, fmt.Sprintf("handler.AddHandlersSourceLinks(bool %+v)}", sourceLinks)}
+		opts.has_formatHTML = true
+		opts.formatHTML = *formatHTML
+	}, fmt.Sprintf("handler.AddHandlersFormatHTML(bool %+v)}", formatHTML)}
 }
 
 func AddHandlersHandlersFiles(handlersFiles []string) AddHandlersOption {
@@ -166,36 +118,36 @@ func AddHandlersHandlersFilesRootFlag(handlersFilesRoot *string) AddHandlersOpti
 	}, fmt.Sprintf("handler.AddHandlersHandlersFilesRoot(string %+v)}", handlersFilesRoot)}
 }
 
-func AddHandlersSourceLinkURIRoot(sourceLinkURIRoot string) AddHandlersOption {
+func AddHandlersIndexName(indexName string) AddHandlersOption {
 	return AddHandlersOption{func(opts *addHandlersOptionImpl) {
-		opts.has_sourceLinkURIRoot = true
-		opts.sourceLinkURIRoot = sourceLinkURIRoot
-	}, fmt.Sprintf("handler.AddHandlersSourceLinkURIRoot(string %+v)}", sourceLinkURIRoot)}
+		opts.has_indexName = true
+		opts.indexName = indexName
+	}, fmt.Sprintf("handler.AddHandlersIndexName(string %+v)}", indexName)}
 }
-func AddHandlersSourceLinkURIRootFlag(sourceLinkURIRoot *string) AddHandlersOption {
+func AddHandlersIndexNameFlag(indexName *string) AddHandlersOption {
 	return AddHandlersOption{func(opts *addHandlersOptionImpl) {
-		if sourceLinkURIRoot == nil {
+		if indexName == nil {
 			return
 		}
-		opts.has_sourceLinkURIRoot = true
-		opts.sourceLinkURIRoot = *sourceLinkURIRoot
-	}, fmt.Sprintf("handler.AddHandlersSourceLinkURIRoot(string %+v)}", sourceLinkURIRoot)}
+		opts.has_indexName = true
+		opts.indexName = *indexName
+	}, fmt.Sprintf("handler.AddHandlersIndexName(string %+v)}", indexName)}
 }
 
-func AddHandlersFormatHTML(formatHTML bool) AddHandlersOption {
+func AddHandlersIndexTitle(indexTitle string) AddHandlersOption {
 	return AddHandlersOption{func(opts *addHandlersOptionImpl) {
-		opts.has_formatHTML = true
-		opts.formatHTML = formatHTML
-	}, fmt.Sprintf("handler.AddHandlersFormatHTML(bool %+v)}", formatHTML)}
+		opts.has_indexTitle = true
+		opts.indexTitle = indexTitle
+	}, fmt.Sprintf("handler.AddHandlersIndexTitle(string %+v)}", indexTitle)}
 }
-func AddHandlersFormatHTMLFlag(formatHTML *bool) AddHandlersOption {
+func AddHandlersIndexTitleFlag(indexTitle *string) AddHandlersOption {
 	return AddHandlersOption{func(opts *addHandlersOptionImpl) {
-		if formatHTML == nil {
+		if indexTitle == nil {
 			return
 		}
-		opts.has_formatHTML = true
-		opts.formatHTML = *formatHTML
-	}, fmt.Sprintf("handler.AddHandlersFormatHTML(bool %+v)}", formatHTML)}
+		opts.has_indexTitle = true
+		opts.indexTitle = *indexTitle
+	}, fmt.Sprintf("handler.AddHandlersIndexTitle(string %+v)}", indexTitle)}
 }
 
 func AddHandlersKey(key string) AddHandlersOption {
@@ -214,6 +166,22 @@ func AddHandlersKeyFlag(key *string) AddHandlersOption {
 	}, fmt.Sprintf("handler.AddHandlersKey(string %+v)}", key)}
 }
 
+func AddHandlersPrefix(prefix string) AddHandlersOption {
+	return AddHandlersOption{func(opts *addHandlersOptionImpl) {
+		opts.has_prefix = true
+		opts.prefix = prefix
+	}, fmt.Sprintf("handler.AddHandlersPrefix(string %+v)}", prefix)}
+}
+func AddHandlersPrefixFlag(prefix *string) AddHandlersOption {
+	return AddHandlersOption{func(opts *addHandlersOptionImpl) {
+		if prefix == nil {
+			return
+		}
+		opts.has_prefix = true
+		opts.prefix = *prefix
+	}, fmt.Sprintf("handler.AddHandlersPrefix(string %+v)}", prefix)}
+}
+
 func AddHandlersSerializedSourceLocations(serializedSourceLocations []byte) AddHandlersOption {
 	return AddHandlersOption{func(opts *addHandlersOptionImpl) {
 		opts.has_serializedSourceLocations = true
@@ -228,6 +196,38 @@ func AddHandlersSerializedSourceLocationsFlag(serializedSourceLocations *[]byte)
 		opts.has_serializedSourceLocations = true
 		opts.serializedSourceLocations = *serializedSourceLocations
 	}, fmt.Sprintf("handler.AddHandlersSerializedSourceLocations([]byte %+v)}", serializedSourceLocations)}
+}
+
+func AddHandlersSourceLinkURIRoot(sourceLinkURIRoot string) AddHandlersOption {
+	return AddHandlersOption{func(opts *addHandlersOptionImpl) {
+		opts.has_sourceLinkURIRoot = true
+		opts.sourceLinkURIRoot = sourceLinkURIRoot
+	}, fmt.Sprintf("handler.AddHandlersSourceLinkURIRoot(string %+v)}", sourceLinkURIRoot)}
+}
+func AddHandlersSourceLinkURIRootFlag(sourceLinkURIRoot *string) AddHandlersOption {
+	return AddHandlersOption{func(opts *addHandlersOptionImpl) {
+		if sourceLinkURIRoot == nil {
+			return
+		}
+		opts.has_sourceLinkURIRoot = true
+		opts.sourceLinkURIRoot = *sourceLinkURIRoot
+	}, fmt.Sprintf("handler.AddHandlersSourceLinkURIRoot(string %+v)}", sourceLinkURIRoot)}
+}
+
+func AddHandlersSourceLinks(sourceLinks bool) AddHandlersOption {
+	return AddHandlersOption{func(opts *addHandlersOptionImpl) {
+		opts.has_sourceLinks = true
+		opts.sourceLinks = sourceLinks
+	}, fmt.Sprintf("handler.AddHandlersSourceLinks(bool %+v)}", sourceLinks)}
+}
+func AddHandlersSourceLinksFlag(sourceLinks *bool) AddHandlersOption {
+	return AddHandlersOption{func(opts *addHandlersOptionImpl) {
+		if sourceLinks == nil {
+			return
+		}
+		opts.has_sourceLinks = true
+		opts.sourceLinks = *sourceLinks
+	}, fmt.Sprintf("handler.AddHandlersSourceLinks(bool %+v)}", sourceLinks)}
 }
 
 type addHandlersOptionImpl struct {
@@ -257,48 +257,48 @@ type addHandlersOptionImpl struct {
 	has_serializedSourceLocations bool
 }
 
-func (a *addHandlersOptionImpl) IndexTitle() string         { return a.indexTitle }
-func (a *addHandlersOptionImpl) HasIndexTitle() bool        { return a.has_indexTitle }
-func (a *addHandlersOptionImpl) Prefix() string             { return a.prefix }
-func (a *addHandlersOptionImpl) HasPrefix() bool            { return a.has_prefix }
-func (a *addHandlersOptionImpl) IndexName() string          { return a.indexName }
-func (a *addHandlersOptionImpl) HasIndexName() bool         { return a.has_indexName }
 func (a *addHandlersOptionImpl) EditName() string           { return a.editName }
 func (a *addHandlersOptionImpl) HasEditName() bool          { return a.has_editName }
 func (a *addHandlersOptionImpl) FooterHTML() string         { return a.footerHTML }
 func (a *addHandlersOptionImpl) HasFooterHTML() bool        { return a.has_footerHTML }
-func (a *addHandlersOptionImpl) SourceLinks() bool          { return a.sourceLinks }
-func (a *addHandlersOptionImpl) HasSourceLinks() bool       { return a.has_sourceLinks }
+func (a *addHandlersOptionImpl) FormatHTML() bool           { return a.formatHTML }
+func (a *addHandlersOptionImpl) HasFormatHTML() bool        { return a.has_formatHTML }
 func (a *addHandlersOptionImpl) HandlersFiles() []string    { return a.handlersFiles }
 func (a *addHandlersOptionImpl) HasHandlersFiles() bool     { return a.has_handlersFiles }
 func (a *addHandlersOptionImpl) HandlersFilesRoot() string  { return a.handlersFilesRoot }
 func (a *addHandlersOptionImpl) HasHandlersFilesRoot() bool { return a.has_handlersFilesRoot }
-func (a *addHandlersOptionImpl) SourceLinkURIRoot() string  { return a.sourceLinkURIRoot }
-func (a *addHandlersOptionImpl) HasSourceLinkURIRoot() bool { return a.has_sourceLinkURIRoot }
-func (a *addHandlersOptionImpl) FormatHTML() bool           { return a.formatHTML }
-func (a *addHandlersOptionImpl) HasFormatHTML() bool        { return a.has_formatHTML }
+func (a *addHandlersOptionImpl) IndexName() string          { return a.indexName }
+func (a *addHandlersOptionImpl) HasIndexName() bool         { return a.has_indexName }
+func (a *addHandlersOptionImpl) IndexTitle() string         { return a.indexTitle }
+func (a *addHandlersOptionImpl) HasIndexTitle() bool        { return a.has_indexTitle }
 func (a *addHandlersOptionImpl) Key() string                { return a.key }
 func (a *addHandlersOptionImpl) HasKey() bool               { return a.has_key }
+func (a *addHandlersOptionImpl) Prefix() string             { return a.prefix }
+func (a *addHandlersOptionImpl) HasPrefix() bool            { return a.has_prefix }
 func (a *addHandlersOptionImpl) SerializedSourceLocations() []byte {
 	return a.serializedSourceLocations
 }
 func (a *addHandlersOptionImpl) HasSerializedSourceLocations() bool {
 	return a.has_serializedSourceLocations
 }
+func (a *addHandlersOptionImpl) SourceLinkURIRoot() string  { return a.sourceLinkURIRoot }
+func (a *addHandlersOptionImpl) HasSourceLinkURIRoot() bool { return a.has_sourceLinkURIRoot }
+func (a *addHandlersOptionImpl) SourceLinks() bool          { return a.sourceLinks }
+func (a *addHandlersOptionImpl) HasSourceLinks() bool       { return a.has_sourceLinks }
 
 // ToAddSectionOptions converts AddHandlersOption to an array of AddSectionOption
 func (o *addHandlersOptionImpl) ToAddSectionOptions() []AddSectionOption {
 	return []AddSectionOption{
-		AddSectionHandlersFilesRoot(o.HandlersFilesRoot()),
-		AddSectionSourceLinkURIRoot(o.SourceLinkURIRoot()),
+		AddSectionIndexName(o.IndexName()),
+		AddSectionFooterHTML(o.FooterHTML()),
 		AddSectionFormatHTML(o.FormatHTML()),
 		AddSectionKey(o.Key()),
 		AddSectionSerializedSourceLocations(o.SerializedSourceLocations()),
-		AddSectionFooterHTML(o.FooterHTML()),
-		AddSectionHandlersFiles(o.HandlersFiles()),
-		AddSectionSourceLinks(o.SourceLinks()),
-		AddSectionIndexName(o.IndexName()),
 		AddSectionEditName(o.EditName()),
+		AddSectionSourceLinks(o.SourceLinks()),
+		AddSectionHandlersFiles(o.HandlersFiles()),
+		AddSectionHandlersFilesRoot(o.HandlersFilesRoot()),
+		AddSectionSourceLinkURIRoot(o.SourceLinkURIRoot()),
 	}
 }
 
