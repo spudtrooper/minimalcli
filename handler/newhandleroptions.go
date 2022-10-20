@@ -142,18 +142,18 @@ func NewHandlerWebOnlyFlag(webOnly *bool) NewHandlerOption {
 type newHandlerOptionImpl struct {
 	cliOnly                 bool
 	has_cliOnly             bool
+	extraRequiredFields     []string
+	has_extraRequiredFields bool
 	metadata                HandlerMetadata
 	has_metadata            bool
 	method                  string
 	has_method              bool
-	extraRequiredFields     []string
-	has_extraRequiredFields bool
 	renderer                Renderer
 	has_renderer            bool
-	webOnly                 bool
-	has_webOnly             bool
 	rendererConfig          RendererConfig
 	has_rendererConfig      bool
+	webOnly                 bool
+	has_webOnly             bool
 }
 
 func (n *newHandlerOptionImpl) CliOnly() bool                  { return n.cliOnly }

@@ -90,14 +90,14 @@ func GenIndexTitleFlag(title *string) GenIndexOption {
 }
 
 type genIndexOptionImpl struct {
-	title          string
-	has_title      bool
 	footerHTML     string
 	has_footerHTML bool
 	formatHTML     bool
 	has_formatHTML bool
 	route          string
 	has_route      bool
+	title          string
+	has_title      bool
 }
 
 func (g *genIndexOptionImpl) FooterHTML() string  { return g.footerHTML }

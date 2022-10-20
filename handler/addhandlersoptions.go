@@ -231,30 +231,30 @@ func AddHandlersSourceLinksFlag(sourceLinks *bool) AddHandlersOption {
 }
 
 type addHandlersOptionImpl struct {
-	indexTitle                    string
-	has_indexTitle                bool
-	prefix                        string
-	has_prefix                    bool
-	indexName                     string
-	has_indexName                 bool
 	editName                      string
 	has_editName                  bool
 	footerHTML                    string
 	has_footerHTML                bool
-	sourceLinks                   bool
-	has_sourceLinks               bool
+	formatHTML                    bool
+	has_formatHTML                bool
 	handlersFiles                 []string
 	has_handlersFiles             bool
 	handlersFilesRoot             string
 	has_handlersFilesRoot         bool
-	sourceLinkURIRoot             string
-	has_sourceLinkURIRoot         bool
-	formatHTML                    bool
-	has_formatHTML                bool
+	indexName                     string
+	has_indexName                 bool
+	indexTitle                    string
+	has_indexTitle                bool
 	key                           string
 	has_key                       bool
+	prefix                        string
+	has_prefix                    bool
 	serializedSourceLocations     []byte
 	has_serializedSourceLocations bool
+	sourceLinkURIRoot             string
+	has_sourceLinkURIRoot         bool
+	sourceLinks                   bool
+	has_sourceLinks               bool
 }
 
 func (a *addHandlersOptionImpl) EditName() string           { return a.editName }
@@ -289,16 +289,16 @@ func (a *addHandlersOptionImpl) HasSourceLinks() bool       { return a.has_sourc
 // ToAddSectionOptions converts AddHandlersOption to an array of AddSectionOption
 func (o *addHandlersOptionImpl) ToAddSectionOptions() []AddSectionOption {
 	return []AddSectionOption{
+		AddSectionSourceLinkURIRoot(o.SourceLinkURIRoot()),
+		AddSectionFormatHTML(o.FormatHTML()),
+		AddSectionSourceLinks(o.SourceLinks()),
+		AddSectionHandlersFiles(o.HandlersFiles()),
+		AddSectionHandlersFilesRoot(o.HandlersFilesRoot()),
 		AddSectionKey(o.Key()),
 		AddSectionSerializedSourceLocations(o.SerializedSourceLocations()),
 		AddSectionIndexName(o.IndexName()),
 		AddSectionEditName(o.EditName()),
 		AddSectionFooterHTML(o.FooterHTML()),
-		AddSectionSourceLinks(o.SourceLinks()),
-		AddSectionHandlersFilesRoot(o.HandlersFilesRoot()),
-		AddSectionFormatHTML(o.FormatHTML()),
-		AddSectionHandlersFiles(o.HandlersFiles()),
-		AddSectionSourceLinkURIRoot(o.SourceLinkURIRoot()),
 	}
 }
 

@@ -194,26 +194,26 @@ func AddSectionSourceLinksFlag(sourceLinks *bool) AddSectionOption {
 }
 
 type addSectionOptionImpl struct {
-	indexName                     string
-	has_indexName                 bool
 	editName                      string
 	has_editName                  bool
 	footerHTML                    string
 	has_footerHTML                bool
-	sourceLinks                   bool
-	has_sourceLinks               bool
+	formatHTML                    bool
+	has_formatHTML                bool
 	handlersFiles                 []string
 	has_handlersFiles             bool
 	handlersFilesRoot             string
 	has_handlersFilesRoot         bool
-	sourceLinkURIRoot             string
-	has_sourceLinkURIRoot         bool
-	formatHTML                    bool
-	has_formatHTML                bool
+	indexName                     string
+	has_indexName                 bool
 	key                           string
 	has_key                       bool
 	serializedSourceLocations     []byte
 	has_serializedSourceLocations bool
+	sourceLinkURIRoot             string
+	has_sourceLinkURIRoot         bool
+	sourceLinks                   bool
+	has_sourceLinks               bool
 }
 
 func (a *addSectionOptionImpl) EditName() string                  { return a.editName }

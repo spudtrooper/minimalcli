@@ -90,14 +90,14 @@ func GenAllTitleFlag(title *string) GenAllOption {
 }
 
 type genAllOptionImpl struct {
-	title          string
-	has_title      bool
 	footerHTML     string
 	has_footerHTML bool
 	formatHTML     bool
 	has_formatHTML bool
 	route          string
 	has_route      bool
+	title          string
+	has_title      bool
 }
 
 func (g *genAllOptionImpl) FooterHTML() string  { return g.footerHTML }
