@@ -21,6 +21,10 @@ type NewHandlerOptions interface {
 	HasMethod() bool
 	Renderer() Renderer
 	HasRenderer() bool
+	RendererConfig() RendererConfig
+	HasRendererConfig() bool
+	WebOnly() bool
+	HasWebOnly() bool
 }
 
 func NewHandlerCliOnly(cliOnly bool) NewHandlerOption {
@@ -103,6 +107,38 @@ func NewHandlerRendererFlag(renderer *Renderer) NewHandlerOption {
 	}, fmt.Sprintf("handler.NewHandlerRenderer(Renderer %+v)}", renderer)}
 }
 
+func NewHandlerRendererConfig(rendererConfig RendererConfig) NewHandlerOption {
+	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
+		opts.has_rendererConfig = true
+		opts.rendererConfig = rendererConfig
+	}, fmt.Sprintf("handler.NewHandlerRendererConfig(RendererConfig %+v)}", rendererConfig)}
+}
+func NewHandlerRendererConfigFlag(rendererConfig *RendererConfig) NewHandlerOption {
+	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
+		if rendererConfig == nil {
+			return
+		}
+		opts.has_rendererConfig = true
+		opts.rendererConfig = *rendererConfig
+	}, fmt.Sprintf("handler.NewHandlerRendererConfig(RendererConfig %+v)}", rendererConfig)}
+}
+
+func NewHandlerWebOnly(webOnly bool) NewHandlerOption {
+	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
+		opts.has_webOnly = true
+		opts.webOnly = webOnly
+	}, fmt.Sprintf("handler.NewHandlerWebOnly(bool %+v)}", webOnly)}
+}
+func NewHandlerWebOnlyFlag(webOnly *bool) NewHandlerOption {
+	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
+		if webOnly == nil {
+			return
+		}
+		opts.has_webOnly = true
+		opts.webOnly = *webOnly
+	}, fmt.Sprintf("handler.NewHandlerWebOnly(bool %+v)}", webOnly)}
+}
+
 type newHandlerOptionImpl struct {
 	cliOnly                 bool
 	has_cliOnly             bool
@@ -114,18 +150,26 @@ type newHandlerOptionImpl struct {
 	has_extraRequiredFields bool
 	renderer                Renderer
 	has_renderer            bool
+	webOnly                 bool
+	has_webOnly             bool
+	rendererConfig          RendererConfig
+	has_rendererConfig      bool
 }
 
-func (n *newHandlerOptionImpl) CliOnly() bool                 { return n.cliOnly }
-func (n *newHandlerOptionImpl) HasCliOnly() bool              { return n.has_cliOnly }
-func (n *newHandlerOptionImpl) ExtraRequiredFields() []string { return n.extraRequiredFields }
-func (n *newHandlerOptionImpl) HasExtraRequiredFields() bool  { return n.has_extraRequiredFields }
-func (n *newHandlerOptionImpl) Metadata() HandlerMetadata     { return n.metadata }
-func (n *newHandlerOptionImpl) HasMetadata() bool             { return n.has_metadata }
-func (n *newHandlerOptionImpl) Method() string                { return n.method }
-func (n *newHandlerOptionImpl) HasMethod() bool               { return n.has_method }
-func (n *newHandlerOptionImpl) Renderer() Renderer            { return n.renderer }
-func (n *newHandlerOptionImpl) HasRenderer() bool             { return n.has_renderer }
+func (n *newHandlerOptionImpl) CliOnly() bool                  { return n.cliOnly }
+func (n *newHandlerOptionImpl) HasCliOnly() bool               { return n.has_cliOnly }
+func (n *newHandlerOptionImpl) ExtraRequiredFields() []string  { return n.extraRequiredFields }
+func (n *newHandlerOptionImpl) HasExtraRequiredFields() bool   { return n.has_extraRequiredFields }
+func (n *newHandlerOptionImpl) Metadata() HandlerMetadata      { return n.metadata }
+func (n *newHandlerOptionImpl) HasMetadata() bool              { return n.has_metadata }
+func (n *newHandlerOptionImpl) Method() string                 { return n.method }
+func (n *newHandlerOptionImpl) HasMethod() bool                { return n.has_method }
+func (n *newHandlerOptionImpl) Renderer() Renderer             { return n.renderer }
+func (n *newHandlerOptionImpl) HasRenderer() bool              { return n.has_renderer }
+func (n *newHandlerOptionImpl) RendererConfig() RendererConfig { return n.rendererConfig }
+func (n *newHandlerOptionImpl) HasRendererConfig() bool        { return n.has_rendererConfig }
+func (n *newHandlerOptionImpl) WebOnly() bool                  { return n.webOnly }
+func (n *newHandlerOptionImpl) HasWebOnly() bool               { return n.has_webOnly }
 
 func makeNewHandlerOptionImpl(opts ...NewHandlerOption) *newHandlerOptionImpl {
 	res := &newHandlerOptionImpl{}

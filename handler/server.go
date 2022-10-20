@@ -56,6 +56,53 @@ func loggingHandleFn(mux *http.ServeMux) handleFn {
 	}
 }
 
+//go:embed tmpl/fragment-wrapper.html
+var fragmentWrapperTmpl string
+
+func responseWithHTML(htmlBytes []byte, config RendererConfig, h *handler, w http.ResponseWriter, req *http.Request) {
+	html := string(htmlBytes)
+	if config.IsFragment {
+		var data = struct {
+			Title   string
+			Content string
+		}{
+			Title:   h.name,
+			Content: html,
+		}
+		var buf bytes.Buffer
+		if err := renderTemplate(&buf, fragmentWrapperTmpl, "fragment", data); err != nil {
+			respondWithError(w, req, err)
+			return
+		}
+		html = buf.String()
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	fmt.Fprint(w, html)
+}
+
+func handle(ctx context.Context, h *handler, w http.ResponseWriter, req *http.Request) {
+	if !strings.EqualFold(req.Method, h.method) {
+		respondWithErrorString(w, req, "method %s not supported, only %s supported", req.Method, h.method)
+		return
+	}
+	evalCtx := &serverEvalContext{ctx, w, req}
+	res, err := h.fn(evalCtx)
+	if err != nil {
+		respondWithError(w, req, err)
+		return
+	}
+	if render := getBoolURLParam(req, renderURLParamKey); render && h.renderer != nil {
+		htmlBytes, config, err := h.renderer(res)
+		if err != nil {
+			respondWithError(w, req, err)
+			return
+		}
+		responseWithHTML(htmlBytes, config, h, w, req)
+		return
+	}
+	respondWithJSON(req, w, res)
+}
+
 //go:generate genopts --function AddSection indexName:string editName:string footerHTML:string sourceLinks handlersFiles:[]string handlersFilesRoot:string sourceLinkURIRoot:string formatHTML key:string serializedSourceLocations:[]byte
 func AddSection(ctx context.Context, mux *http.ServeMux, hs []Handler, prefix, title string, optss ...AddSectionOption) (*Section, error) {
 	opts := MakeAddSectionOptions(optss...)
@@ -90,13 +137,25 @@ func AddSection(ctx context.Context, mux *http.ServeMux, hs []Handler, prefix, t
 		}
 		route := fmt.Sprintf("/%s/%s", prefix, strings.ToLower(h.name))
 		routesToHandlers[route] = h
-		handleFunc(route, func(w http.ResponseWriter, req *http.Request) {
-			log.Printf("handling %s for handler %s", req.URL.Path, h.name)
-			handle(ctx, h, w, req)
-		})
+		// Render this statically, so we see any errors at startup
+		if h.isStatic {
+			htmlBytes, config, err := h.renderer(nil)
+			if err != nil {
+				return nil, err
+			}
+			handleFunc(route, func(w http.ResponseWriter, req *http.Request) {
+				responseWithHTML(htmlBytes, config, h, w, req)
+			})
+		} else {
+			handleFunc(route, func(w http.ResponseWriter, req *http.Request) {
+				log.Printf("handling %s for handler %s", req.URL.Path, h.name)
+				handle(ctx, h, w, req)
+			})
+		}
 		routesToHandlerMinimalMetadata[route] = handlerMinimalMetadata{
 			Name:      h.name,
 			HasParams: !h.metadata.Empty(),
+			IsStatic:  h.isStatic,
 		}
 	}
 
@@ -127,7 +186,7 @@ func AddSection(ctx context.Context, mux *http.ServeMux, hs []Handler, prefix, t
 	{
 		index, err := genSectionIndex(title, prefix, editName, routesToHandlerMinimalMetadata, footerHTML, handlerToSource, formatHTML)
 		if err != nil {
-			return nil, errors.Errorf("error generating index page: %w", err)
+			return nil, errors.Errorf("error generating index page: %+v", err)
 		}
 		handleFunc(fmt.Sprintf("/%s/%s", prefix, indexName), func(w http.ResponseWriter, req *http.Request) {
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -144,7 +203,7 @@ func AddSection(ctx context.Context, mux *http.ServeMux, hs []Handler, prefix, t
 			}
 			edit, err := genEdit(title, route, prefix, indexName, h, formatHTML, sourceURI, key)
 			if err != nil {
-				return nil, errors.Errorf("error generating edit page for %s: %w", h.name, err)
+				return nil, errors.Errorf("error generating edit page for %s: %+v", h.name, err)
 			}
 			routesToEdits[route] = edit
 
@@ -306,49 +365,6 @@ func AddHandlers(ctx context.Context, mux *http.ServeMux, hs []Handler, optss ..
 	return nil
 }
 
-//go:embed tmpl/fragment-wrapper.html
-var fragmentWrapperTmpl string
-
-func handle(ctx context.Context, h *handler, w http.ResponseWriter, req *http.Request) {
-	if !strings.EqualFold(req.Method, h.method) {
-		respondWithErrorString(w, req, "method %s not supported, only %s supported", req.Method, h.method)
-		return
-	}
-	evalCtx := &serverEvalContext{ctx, w, req}
-	res, err := h.fn(evalCtx)
-	if err != nil {
-		respondWithError(w, req, err)
-		return
-	}
-	if render := getBoolURLParam(req, renderURLParamKey); render && h.renderer != nil {
-		htmlBytes, config, err := h.renderer(res)
-		if err != nil {
-			respondWithError(w, req, err)
-			return
-		}
-		html := string(htmlBytes)
-		if config.IsFragment {
-			var data = struct {
-				Title   string
-				Content string
-			}{
-				Title:   h.name,
-				Content: html,
-			}
-			var buf bytes.Buffer
-			if err := renderTemplate(&buf, fragmentWrapperTmpl, "fragment", data); err != nil {
-				respondWithError(w, req, err)
-				return
-			}
-			html = buf.String()
-		}
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprint(w, html)
-		return
-	}
-	respondWithJSON(req, w, res)
-}
-
 var (
 	// NewHandlerFromHandlerFn("SaveRawRestaurantDetailsFromID"
 	newHandlerFromHandlerFnRE = regexp.MustCompile(`NewHandlerFromHandlerFn\("([^"]+)"`)
@@ -409,6 +425,7 @@ var sectionIndexHTMLTemplate string
 type sectionIndexRoute struct {
 	Route     string
 	HasParams bool
+	IsStatic  bool
 	SourceURI string
 }
 type sectionIndex struct {
@@ -422,6 +439,7 @@ type sectionIndex struct {
 type handlerMinimalMetadata struct {
 	Name      string
 	HasParams bool
+	IsStatic  bool
 }
 
 func makeSectionIndexData(title, prefix, editName string, routesToHandlers map[string]handlerMinimalMetadata, footerHTML string, handlerToSource map[string]sourceLocation) sectionIndex {
@@ -432,11 +450,12 @@ func makeSectionIndexData(title, prefix, editName string, routesToHandlers map[s
 	sort.Strings(routePaths)
 	var routes []sectionIndexRoute
 	for _, r := range routePaths {
+		h := routesToHandlers[r]
 		route := sectionIndexRoute{
 			Route:     r,
-			HasParams: routesToHandlers[r].HasParams,
+			HasParams: h.HasParams,
+			IsStatic:  h.IsStatic,
 		}
-		h := routesToHandlers[r]
 		if s, ok := handlerToSource[h.Name]; ok {
 			route.SourceURI = s.URI()
 		}
@@ -526,6 +545,7 @@ func genEdit(title, route, prefix, indexName string, h *handler, format bool, so
 		Title          string
 		Route          string
 		Prefix         string
+		IsStatic       bool
 		Key            string
 		IndexName      string
 		SourceURI      string
@@ -536,6 +556,7 @@ func genEdit(title, route, prefix, indexName string, h *handler, format bool, so
 		Title:          title,
 		Route:          route,
 		Prefix:         prefix,
+		IsStatic:       h.isStatic,
 		Key:            key,
 		IndexName:      indexName,
 		SourceURI:      sourceURI,

@@ -1,5 +1,6 @@
 {{$prefix := .Prefix}}
 {{$indexName := .IndexName}}
+{{$isStatic := .IsStatic}}
 <!DOCTYPE html>
 <html>
 
@@ -61,7 +62,10 @@
     <h1>{{.Title}}</h1>
     <h2>{{.Route}}</h2>
     <form class="row g-1 needs-validation" action="{{.Route}}" method="GET">
-      {{- if .HasRenderer }}
+      {{- if $isStatic}}
+      rendered
+      {{- end}}
+      {{- if and .HasRenderer (not $isStatic) }}
       <div class="form-check form-switch">
         <input class="form-check-input" type="checkbox" id="renderResultCheck" name="{{.RenderURLParam}}">
         <label class="form-check-label" for="renderResultCheck">Render result</label>
@@ -77,8 +81,8 @@
         <input class="form-check-input persist-check" type="checkbox" value="" id="persist{{$f.Name}}"
           data-input-id="validationCustom{{$f.Name}}" data-input-name="{{$f.Name}}">
         <label class="form-check-label" for="persist{{$f.Name}}">Persist</label>
-        <input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$f.Name}}" value=""
-          {{if $f.Required}}required{{end}}>
+        <input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$f.Name}}"
+          {{- if $f.Required}}required{{- end}} value="{{- if $isStatic}}{{$f.Default}}{{- end}}">
       </div>
       {{- end}}
       {{- if eq $f.Type "duration"}}
@@ -90,8 +94,8 @@
         <input class="form-check-input persist-check" type="checkbox" value="" id="persist{{$f.Name}}"
           data-input-id="validationCustom{{$f.Name}}" data-input-name="{{$f.Name}}">
         <label class="form-check-label" for="persist{{$f.Name}}">Persist</label>
-        <input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$f.Name}}" value=""
-          {{if $f.Required}}required{{end}}>
+        <input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$f.Name}}"
+          {{- if $f.Required}}required{{- end}} value="{{- if $isStatic}}{{$f.Default}}{{- end}}">
       </div>
       {{- end}}
       {{- if eq $f.Type "time"}}
@@ -103,8 +107,8 @@
         <input class="form-check-input persist-check" type="checkbox" value="" id="persist{{$f.Name}}"
           data-input-id="validationCustom{{$f.Name}}" data-input-name="{{$f.Name}}">
         <label class="form-check-label" for="persist{{$f.Name}}">Persist</label>
-        <input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$f.Name}}" value=""
-          {{if $f.Required}}required{{end}}>
+        <input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$f.Name}}"
+          {{- if $f.Required}}required{{- end}} value="{{- if $isStatic}}{{$f.Default}}{{- end}}">
       </div>
       {{- end}}
       {{- if eq $f.Type "int"}}
@@ -116,8 +120,8 @@
         <input class="form-check-input persist-check" type="checkbox" value="" id="persist{{$f.Name}}"
           data-input-id="validationCustom{{$f.Name}}" data-input-name="{{$f.Name}}">
         <label class="form-check-label" for="persist{{$f.Name}}">Persist</label>
-        <input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$f.Name}}" value=""
-          {{if $f.Required}}required{{end}}>
+        <input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$f.Name}}"
+          {{- if $f.Required}}required{{- end}} value="{{- if $isStatic}}{{$f.Default}}{{- end}}">
       </div>
       {{- end}}
       {{- if eq $f.Type "float32"}}
@@ -129,8 +133,8 @@
         <input class="form-check-input persist-check" type="checkbox" value="" id="persist{{$f.Name}}"
           data-input-id="validationCustom{{$f.Name}}" data-input-name="{{$f.Name}}">
         <label class="form-check-label" for="persist{{$f.Name}}">Persist</label>
-        <input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$f.Name}}" value=""
-          {{if $f.Required}}required{{end}}>
+        <input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$f.Name}}"
+          {{- if $f.Required}}required{{- end}} value="{{- if $isStatic}}{{$f.Default}}{{- end}}">
       </div>
       {{- end}}
       {{- if eq $f.Type "float64"}}
@@ -142,8 +146,8 @@
         <input class="form-check-input persist-check" type="checkbox" value="" id="persist{{$f.Name}}"
           data-input-id="validationCustom{{$f.Name}}" data-input-name="{{$f.Name}}">
         <label class="form-check-label" for="persist{{$f.Name}}">Persist</label>
-        <input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$f.Name}}" value=""
-          {{if $f.Required}}required{{end}}>
+        <input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$f.Name}}"
+          {{- if $f.Required}}required{{- end}} value="{{- if $isStatic}}{{$f.Default}}{{- end}}">
       </div>
       {{- end}}
       {{- if eq $f.Type "bool"}}

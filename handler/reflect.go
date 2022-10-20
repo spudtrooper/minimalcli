@@ -15,14 +15,14 @@ import (
 type ctorFn func() any
 type handlerFn func(ctx context.Context, ip any) (any, error)
 
-func NewHandler(name string, hf handlerFn, p any, optss ...NewHandlerOption) Handler {
+func NewHandler(name string, hf handlerFn, paramsPrototype any, optss ...NewHandlerOption) Handler {
 	var pCtor ctorFn = func() any {
-		res := p
+		res := paramsPrototype
 		return res
 	}
 	opts := MakeNewHandlerOptions(optss...)
-	fields := exportedFields(p)
-	metadata := metadataFromStruct(fields, opts.ExtraRequiredFields())
+	fields := exportedFields(paramsPrototype)
+	metadata := metadataFromFields(fields, opts.ExtraRequiredFields())
 	fn := fnFromStructAndParams(hf, pCtor, fields)
 	cliOnly := opts.CliOnly()
 	method := or.String(opts.Method(), "GET")
@@ -36,7 +36,28 @@ func NewHandler(name string, hf handlerFn, p any, optss ...NewHandlerOption) Han
 	}
 }
 
-func metadataFromStruct(fs []reflect.StructField, requiredFields []string) HandlerMetadata {
+func NewStaticHandler(name string, htmlBytes []byte, paramsPrototype any, optss ...NewHandlerOption) Handler {
+	opts := MakeNewHandlerOptions(optss...)
+	config := opts.RendererConfig()
+	renderer := func(any) ([]byte, RendererConfig, error) {
+		return htmlBytes, config, nil
+	}
+	method := or.String(opts.Method(), "GET")
+	res := &handler{
+		name:     name,
+		webOnly:  true,
+		isStatic: true,
+		method:   method,
+		renderer: renderer,
+	}
+	if paramsPrototype != nil {
+		fields := exportedFields(paramsPrototype)
+		res.metadata = metadataFromFields(fields, opts.ExtraRequiredFields())
+	}
+	return res
+}
+
+func metadataFromFields(fs []reflect.StructField, requiredFields []string) HandlerMetadata {
 	return HandlerMetadata{
 		Params: paramsFromStruct(fs, requiredFields),
 	}

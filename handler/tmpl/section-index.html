@@ -30,6 +30,9 @@
         {{else}}
         <a href="{{.Route}}">{{.Route}}</a>
         {{end}}
+        {{- if .IsStatic }}
+        (rendered)
+        {{- end}}        
         {{if ne .SourceURI ""}}
         [ <a target="_" href="//{{.SourceURI}}">source</a> ]
         {{end}}

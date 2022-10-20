@@ -7,6 +7,7 @@ type handlerBuilder struct {
 type HandlerBuilder interface {
 	NewHandlerFromHandlerFn(name string, fn HandlerFn, optss ...NewHandlerOption)
 	NewHandler(name string, hf handlerFn, paramsPrototype any, optss ...NewHandlerOption)
+	NewStaticHandler(name string, res []byte, paramsPrototype any, optss ...NewHandlerOption)
 	Build() []Handler
 }
 
@@ -22,6 +23,10 @@ func (h *handlerBuilder) NewHandlerFromHandlerFn(name string, fn HandlerFn, opts
 	h.handlers = append(h.handlers, NewHandlerFromHandlerFn(name, fn, optss...))
 }
 
+func (h *handlerBuilder) NewStaticHandler(name string, htmlBytes []byte, paramsPrototype any, optss ...NewHandlerOption) {
+	h.handlers = append(h.handlers, NewStaticHandler(name, htmlBytes, paramsPrototype, optss...))
+}
+
 func (h *handlerBuilder) Build() []Handler {
-	return h.handlers
+	return append([]Handler{}, h.handlers...)
 }

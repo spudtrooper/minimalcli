@@ -13,6 +13,8 @@ type handler struct {
 	name     string
 	fn       HandlerFn
 	cliOnly  bool
+	webOnly  bool
+	isStatic bool
 	method   string
 	metadata HandlerMetadata
 	renderer Renderer
@@ -52,13 +54,15 @@ type RendererConfig struct {
 
 type Renderer func(any) ([]byte, RendererConfig, error)
 
-//go:generate genopts --function NewHandler cliOnly metadata:HandlerMetadata method:string extraRequiredFields:[]string renderer:Renderer
+//go:generate genopts --function NewHandler cliOnly metadata:HandlerMetadata method:string extraRequiredFields:[]string renderer:Renderer webOnly rendererConfig:RendererConfig
+
 func NewHandlerFromHandlerFn(name string, fn HandlerFn, optss ...NewHandlerOption) Handler {
 	opts := MakeNewHandlerOptions(optss...)
 	return &handler{
 		name:     name,
 		fn:       fn,
 		cliOnly:  opts.CliOnly(),
+		webOnly:  opts.WebOnly(),
 		metadata: opts.Metadata(),
 		method:   or.String(opts.Method(), "GET"),
 		renderer: opts.Renderer(),
