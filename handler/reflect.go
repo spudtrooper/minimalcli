@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"log"
 	"reflect"
 	"strings"
 
@@ -156,60 +155,92 @@ func setValuesOnParams(ctx EvalContext, pCtor ctorFn, fs []reflect.StructField) 
 		nameInCtx, required, _ := findFieldMetadata(sf)
 		switch f.Kind() {
 		case reflect.String:
+			var s string
 			if required {
 				v, ok := ctx.MustString(nameInCtx)
 				if !ok {
 					shouldHandle = false
 					break
 				}
-				f.SetString(v)
+				s = v
 			} else {
-				f.SetString(ctx.String(nameInCtx))
+				s = ctx.String(nameInCtx)
 			}
+			if *debug {
+				log.Printf("setting string %s to %q", sf.Name, s)
+			}
+			f.SetString(s)
 		case reflect.Int:
+			var i int
 			if required {
 				v, ok := ctx.MustInt(nameInCtx)
 				if !ok {
 					shouldHandle = false
 					break
 				}
-				f.SetInt(int64(v))
+				i = v
 			} else {
-				f.SetInt(int64(ctx.Int(nameInCtx)))
+				i = ctx.Int(nameInCtx)
 			}
+			if *debug {
+				log.Printf("setting int %s to %d", sf.Name, i)
+			}
+			f.SetInt(int64(i))
 		case reflect.Int64:
 			// First try this as a time.Duration.
 			if v := ctx.Duration(nameInCtx); v != 0 {
+				if *debug {
+					log.Printf("setting duration %s to %v", sf.Name, v)
+				}
 				// TODO: Allow required time.Duration
 				f.SetInt(int64(v))
 				break
 			}
 			// Fall back to int64.
+			var i int
 			if required {
 				v, ok := ctx.MustInt(nameInCtx)
 				if !ok {
 					shouldHandle = false
 					break
 				}
-				f.SetInt(int64(v))
+				i = v
 			} else {
-				f.SetInt(int64(ctx.Int(nameInCtx)))
+				i = ctx.Int(nameInCtx)
 			}
+			if *debug {
+				log.Printf("setting int64 %s to %d", sf.Name, i)
+			}
+			f.SetInt(int64(i))
 		case reflect.Bool:
 			v := ctx.Bool(nameInCtx)
-			log.Printf("setting %q to %v", nameInCtx, v)
+			if *debug {
+				log.Printf("setting int64 %s to %t", sf.Name, v)
+			}
 			f.SetBool(v)
 		case reflect.Float32:
-			f.SetFloat(float64(ctx.Float32(nameInCtx)))
+			v := ctx.Float32(nameInCtx)
+			if *debug {
+				log.Printf("setting float32 %s to %f", sf.Name, v)
+			}
+			f.SetFloat(float64(v))
 		case reflect.Float64:
-			f.SetFloat(ctx.Float64(nameInCtx))
+			v := ctx.Float64(nameInCtx)
+			if *debug {
+				log.Printf("setting float64 %s to %f", sf.Name, v)
+			}
+			f.SetFloat(v)
 		case reflect.Struct:
 			if f.Type().String() == "time.Time" {
 				t, err := ctx.Time(nameInCtx)
 				if err != nil {
 					return nil, false, errors.Errorf("evaluating time for %q: %v", nameInCtx, err)
 				}
-				f.Set(reflect.ValueOf(t))
+				v := reflect.ValueOf(t)
+				if *debug {
+					log.Printf("setting time %s to %v", sf.Name, v)
+				}
+				f.Set(v)
 			}
 		default:
 			return nil, false, errors.Errorf(
