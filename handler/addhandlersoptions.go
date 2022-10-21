@@ -289,16 +289,16 @@ func (a *addHandlersOptionImpl) HasSourceLinks() bool       { return a.has_sourc
 // ToAddSectionOptions converts AddHandlersOption to an array of AddSectionOption
 func (o *addHandlersOptionImpl) ToAddSectionOptions() []AddSectionOption {
 	return []AddSectionOption{
-		AddSectionHandlersFilesRoot(o.HandlersFilesRoot()),
-		AddSectionFormatHTML(o.FormatHTML()),
-		AddSectionKey(o.Key()),
 		AddSectionIndexName(o.IndexName()),
-		AddSectionFooterHTML(o.FooterHTML()),
-		AddSectionHandlersFiles(o.HandlersFiles()),
-		AddSectionSerializedSourceLocations(o.SerializedSourceLocations()),
 		AddSectionEditName(o.EditName()),
+		AddSectionSerializedSourceLocations(o.SerializedSourceLocations()),
+		AddSectionKey(o.Key()),
+		AddSectionFooterHTML(o.FooterHTML()),
 		AddSectionSourceLinks(o.SourceLinks()),
+		AddSectionHandlersFiles(o.HandlersFiles()),
+		AddSectionHandlersFilesRoot(o.HandlersFilesRoot()),
 		AddSectionSourceLinkURIRoot(o.SourceLinkURIRoot()),
+		AddSectionFormatHTML(o.FormatHTML()),
 	}
 }
 
