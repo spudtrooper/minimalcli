@@ -38,7 +38,7 @@
           fields.store(name, val);
         });
         $('.in-place-results').hide();
-        inPlace = $('#in-place').prop('checked');
+        const inPlace = $('#in-place').prop('checked');
         if (inPlace) {
           let data = {};
           $('.checkbox').each((i, el) => {
