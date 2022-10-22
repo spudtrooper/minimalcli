@@ -15,6 +15,7 @@
   </script>
   <script src="https://code.jquery.com/jquery-3.6.1.min.js"
     integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="//azimi.me/json-formatter-js/dist/json-formatter.umd.js"></script>
   <script src="/js/fields.js"> </script>
   <script>
     $(document).ready(() => {
@@ -28,7 +29,7 @@
         console.log('setting ' + name + ' -> ' + val);
         $('#validationCustom' + name).val(val);
       }
-      $('#submit').click(() => {
+      $('.submit').click(() => {
         $('.persist-check').each((i, el) => {
           if (!el.checked) return;
           let input = $('#' + $(el).attr('data-input-id'));
@@ -36,6 +37,42 @@
           let name = $(el).attr('data-input-name');
           fields.store(name, val);
         });
+        $('.in-place-results').hide();
+        inPlace = $('#in-place').prop('checked');
+        if (inPlace) {
+          let data = {};
+          $('.checkbox').each((i, el) => {
+            data[$(el).attr('name')] = $(el).prop('checked');
+          });
+          $('.text-input').each((i, el) => {
+            data[$(el).attr('name')] = $(el).val();
+          });
+          $('.in-place-results').show();
+          $('.in-place-results .loading').show();
+          $('.in-place-results .json').empty();
+          $('.in-place-results .json').hide();
+          $.ajax({
+            url: "{{.Route}}",
+            data: data,
+            error: function (xhr, status, error) {
+              $('.in-place-results .loading').hide();
+              console.log('error', xhr, status, error);
+            },
+            success: function (data) {
+              $('.in-place-results .loading').hide();
+              try {
+                const formatter = new JSONFormatter(data, 0, {
+                  hoverPreviewEnabled: true,
+                });
+                $('.in-place-results .json').append($(formatter.render()));
+                $('.in-place-results .json').show();
+              } catch (e) {
+                console.log('while formatting: ' + e);
+              }
+            }
+          });
+          return false;
+        }
         return true;
       });
     });
@@ -65,113 +102,138 @@
       {{- if $isStatic}}
       rendered
       {{- end}}
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="in-place" name="in-place">
+        <label class="form-check-label" for="inPlace">In place</label>
+      </div>
       {{- if and .HasRenderer (not $isStatic) }}
       <div class="form-check form-switch">
         <input class="form-check-input" type="checkbox" id="renderResultCheck" name="{{.RenderURLParam}}">
         <label class="form-check-label" for="renderResultCheck">Render result</label>
       </div>
       {{- end }}
-      {{- range $i, $f := .Forms}}
-      {{- if eq $f.Type "string"}}
-      <div>
-        <label for="validationCustom{{$f.Name}}" class="form-label">{{$f.Name}} <code>string</code>
-          {{if $f.Required}} (required){{end}}
-          {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
-        </label>
-        <input class="form-check-input persist-check" type="checkbox" value="" id="persist{{$f.Name}}"
-          data-input-id="validationCustom{{$f.Name}}" data-input-name="{{$f.Name}}">
-        <label class="form-check-label" for="persist{{$f.Name}}">Persist</label>
-        <input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$f.Name}}"
-          {{- if $f.Required}}required{{- end}} value="{{- if $isStatic}}{{$f.Default}}{{- end}}">
+      <div class="col-12">
+        <button class="btn btn-primary submit" type="submit">Submit</button>
       </div>
-      {{- end}}
-      {{- if eq $f.Type "duration"}}
-      <div>
-        <label for="validationCustom{{$f.Name}}" class="form-label">{{$f.Name}} <code>time.Duration</code>
-          {{if $f.Required}} (required){{end}}
-          {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
-        </label>
-        <input class="form-check-input persist-check" type="checkbox" value="" id="persist{{$f.Name}}"
-          data-input-id="validationCustom{{$f.Name}}" data-input-name="{{$f.Name}}">
-        <label class="form-check-label" for="persist{{$f.Name}}">Persist</label>
-        <input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$f.Name}}"
-          {{- if $f.Required}}required{{- end}} value="{{- if $isStatic}}{{$f.Default}}{{- end}}">
-      </div>
-      {{- end}}
-      {{- if eq $f.Type "time"}}
-      <div>
-        <label for="validationCustom{{$f.Name}}" class="form-label">{{$f.Name}} <code>time.Time</code>
-          {{if $f.Required}} (required){{end}}
-          {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
-        </label>
-        <input class="form-check-input persist-check" type="checkbox" value="" id="persist{{$f.Name}}"
-          data-input-id="validationCustom{{$f.Name}}" data-input-name="{{$f.Name}}">
-        <label class="form-check-label" for="persist{{$f.Name}}">Persist</label>
-        <input type="text" name="{{$f.Name}}" class="form-control" id="validationCustom{{$f.Name}}"
-          {{- if $f.Required}}required{{- end}} value="{{- if $isStatic}}{{$f.Default}}{{- end}}">
-      </div>
-      {{- end}}
-      {{- if eq $f.Type "int"}}
-      <div>
-        <label for="validationCustom{{$f.Name}}" class="form-label">{{$f.Name}} <code>int</code>
-          {{if $f.Required}} (required){{end}}
-          {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
-        </label>
-        <input class="form-check-input persist-check" type="checkbox" value="" id="persist{{$f.Name}}"
-          data-input-id="validationCustom{{$f.Name}}" data-input-name="{{$f.Name}}">
-        <label class="form-check-label" for="persist{{$f.Name}}">Persist</label>
-        <input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$f.Name}}"
-          {{- if $f.Required}}required{{- end}} value="{{- if $isStatic}}{{$f.Default}}{{- end}}">
-      </div>
-      {{- end}}
-      {{- if eq $f.Type "float32"}}
-      <div>
-        <label for="validationCustom{{$f.Name}}" class="form-label">{{$f.Name}} <code>float32</code>
-          {{if $f.Required}} (required){{end}}
-          {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
-        </label>
-        <input class="form-check-input persist-check" type="checkbox" value="" id="persist{{$f.Name}}"
-          data-input-id="validationCustom{{$f.Name}}" data-input-name="{{$f.Name}}">
-        <label class="form-check-label" for="persist{{$f.Name}}">Persist</label>
-        <input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$f.Name}}"
-          {{- if $f.Required}}required{{- end}} value="{{- if $isStatic}}{{$f.Default}}{{- end}}">
-      </div>
-      {{- end}}
-      {{- if eq $f.Type "float64"}}
-      <div>
-        <label for="validationCustom{{$f.Name}}" class="form-label">{{$f.Name}} <code>float64</code>
-          {{if $f.Required}} (required){{end}}
-          {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
-        </label>
-        <input class="form-check-input persist-check" type="checkbox" value="" id="persist{{$f.Name}}"
-          data-input-id="validationCustom{{$f.Name}}" data-input-name="{{$f.Name}}">
-        <label class="form-check-label" for="persist{{$f.Name}}">Persist</label>
-        <input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$f.Name}}"
-          {{- if $f.Required}}required{{- end}} value="{{- if $isStatic}}{{$f.Default}}{{- end}}">
-      </div>
-      {{- end}}
-      {{- if eq $f.Type "bool"}}
-      <div>
-        <label for="validationCustom{{$f.Name}}" class="form-label">{{$f.Name}} <code>bool</code>
-          {{if $f.Required}} (required){{end}}
-          {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
-        </label>
-        <input class="form-check-input persist-check" type="checkbox" value="" id="persist{{$f.Name}}"
-          data-input-id="validationCustom{{$f.Name}}" data-input-name="{{$f.Name}}">
-        <label class="form-check-label" for="persist{{$f.Name}}">Persist</label>
-        <div class="form-check form-switch">
-          <input class="form-check-input" type="checkbox" name="{{$f.Name}}" id="validationCustom{{$f.Name}}"
-            {{- if eq $f.Default "true"}} checked {{- end}}>
-        </div>
-        <div class="invalid-feedback">
-          Please select a valid {{$f.Name}}.
+      <div class="col-12 in-place-results" style="display:none">
+        <div class="card" style="width: 100%; margin-bottom: 1em">
+          <div class="card-body">
+            <h5 class="card-title">Results</h5>
+            <p class="card-text">
+              <div class="json"></div>
+              <div class="loading">Loading...</div>
+            </p>
+          </div>
         </div>
       </div>
-      {{- end}}
-      {{- end}}
+      <div class="card" style="width: 100%; margin-bottom: 1em">
+        <div class="card-body">
+          <h5 class="card-title">Fields</h5>
+          <p class="card-text">
+            {{- range $i, $f := .Forms}}
+            {{- if eq $f.Type "string"}}
+            <div>
+              <label for="validationCustom{{$f.Name}}" class="form-label">{{$f.Name}} <code>string</code>
+                {{if $f.Required}} (required){{end}}
+                {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
+              </label>
+              <input class="form-check-input persist-check" type="checkbox" value="" id="persist{{$f.Name}}"
+                data-input-id="validationCustom{{$f.Name}}" data-input-name="{{$f.Name}}">
+              <label class="form-check-label" for="persist{{$f.Name}}">Persist</label>
+              <input type="text" name="{{$f.Name}}" class="form-control text-input" id="validationCustom{{$f.Name}}"
+                {{- if $f.Required}}required{{- end}} value="{{- if $isStatic}}{{$f.Default}}{{- end}}">
+            </div>
+            {{- end}}
+            {{- if eq $f.Type "duration"}}
+            <div>
+              <label for="validationCustom{{$f.Name}}" class="form-label">{{$f.Name}} <code>time.Duration</code>
+                {{if $f.Required}} (required){{end}}
+                {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
+              </label>
+              <input class="form-check-input persist-check" type="checkbox" value="" id="persist{{$f.Name}}"
+                data-input-id="validationCustom{{$f.Name}}" data-input-name="{{$f.Name}}">
+              <label class="form-check-label" for="persist{{$f.Name}}">Persist</label>
+              <input type="text" name="{{$f.Name}}" class="form-control text-input" id="validationCustom{{$f.Name}}"
+                {{- if $f.Required}}required{{- end}} value="{{- if $isStatic}}{{$f.Default}}{{- end}}">
+            </div>
+            {{- end}}
+            {{- if eq $f.Type "time"}}
+            <div>
+              <label for="validationCustom{{$f.Name}}" class="form-label">{{$f.Name}} <code>time.Time</code>
+                {{if $f.Required}} (required){{end}}
+                {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
+              </label>
+              <input class="form-check-input persist-check" type="checkbox" value="" id="persist{{$f.Name}}"
+                data-input-id="validationCustom{{$f.Name}}" data-input-name="{{$f.Name}}">
+              <label class="form-check-label" for="persist{{$f.Name}}">Persist</label>
+              <input type="text" name="{{$f.Name}}" class="form-control text-input" id="validationCustom{{$f.Name}}"
+                {{- if $f.Required}}required{{- end}} value="{{- if $isStatic}}{{$f.Default}}{{- end}}">
+            </div>
+            {{- end}}
+            {{- if eq $f.Type "int"}}
+            <div>
+              <label for="validationCustom{{$f.Name}}" class="form-label">{{$f.Name}} <code>int</code>
+                {{if $f.Required}} (required){{end}}
+                {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
+              </label>
+              <input class="form-check-input persist-check" type="checkbox" value="" id="persist{{$f.Name}}"
+                data-input-id="validationCustom{{$f.Name}}" data-input-name="{{$f.Name}}">
+              <label class="form-check-label" for="persist{{$f.Name}}">Persist</label>
+              <input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$f.Name}}"
+                {{- if $f.Required}}required{{- end}} value="{{- if $isStatic}}{{$f.Default}}{{- end}}">
+            </div>
+            {{- end}}
+            {{- if eq $f.Type "float32"}}
+            <div>
+              <label for="validationCustom{{$f.Name}}" class="form-label">{{$f.Name}} <code>float32</code>
+                {{if $f.Required}} (required){{end}}
+                {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
+              </label>
+              <input class="form-check-input persist-check" type="checkbox" value="" id="persist{{$f.Name}}"
+                data-input-id="validationCustom{{$f.Name}}" data-input-name="{{$f.Name}}">
+              <label class="form-check-label" for="persist{{$f.Name}}">Persist</label>
+              <input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$f.Name}}"
+                {{- if $f.Required}}required{{- end}} value="{{- if $isStatic}}{{$f.Default}}{{- end}}">
+            </div>
+            {{- end}}
+            {{- if eq $f.Type "float64"}}
+            <div>
+              <label for="validationCustom{{$f.Name}}" class="form-label">{{$f.Name}} <code>float64</code>
+                {{if $f.Required}} (required){{end}}
+                {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
+              </label>
+              <input class="form-check-input persist-check" type="checkbox" value="" id="persist{{$f.Name}}"
+                data-input-id="validationCustom{{$f.Name}}" data-input-name="{{$f.Name}}">
+              <label class="form-check-label" for="persist{{$f.Name}}">Persist</label>
+              <input type="number" name="{{$f.Name}}" class="form-control" id="validationCustom{{$f.Name}}"
+                {{- if $f.Required}}required{{- end}} value="{{- if $isStatic}}{{$f.Default}}{{- end}}">
+            </div>
+            {{- end}}
+            {{- if eq $f.Type "bool"}}
+            <div>
+              <label for="validationCustom{{$f.Name}}" class="form-label">{{$f.Name}} <code>bool</code>
+                {{if $f.Required}} (required){{end}}
+                {{if $f.Default}} [ default = <code class="default-value">{{$f.Default}}</code> ]{{end}}
+              </label>
+              <input class="form-check-input persist-check" type="checkbox" value="" id="persist{{$f.Name}}"
+                data-input-id="validationCustom{{$f.Name}}" data-input-name="{{$f.Name}}">
+              <label class="form-check-label" for="persist{{$f.Name}}">Persist</label>
+              <div class="form-check form-switch">
+                <input class="form-check-input checkbox" type="checkbox" name="{{$f.Name}}"
+                  id="validationCustom{{$f.Name}}" {{- if eq $f.Default "true"}} checked {{- end}}>
+              </div>
+              <div class="invalid-feedback">
+                Please select a valid {{$f.Name}}.
+              </div>
+            </div>
+          </p>
+          {{- end}}
+          {{- end}}
+        </div>
+      </div>
       <br />
       <div class="col-12">
-        <button class="btn btn-primary" type="submit" id="submit">Submit</button>
+        <button class="btn btn-primary submit" type="submit">Submit</button>
       </div>
     </form>
     <br /><br />
