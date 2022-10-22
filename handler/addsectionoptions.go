@@ -37,7 +37,7 @@ func AddSectionEditName(editName string) AddSectionOption {
 	return AddSectionOption{func(opts *addSectionOptionImpl) {
 		opts.has_editName = true
 		opts.editName = editName
-	}, fmt.Sprintf("handler.AddSectionEditName(string %+v)}", editName)}
+	}, fmt.Sprintf("handler.AddSectionEditName(string %+v)", editName)}
 }
 func AddSectionEditNameFlag(editName *string) AddSectionOption {
 	return AddSectionOption{func(opts *addSectionOptionImpl) {
@@ -46,14 +46,14 @@ func AddSectionEditNameFlag(editName *string) AddSectionOption {
 		}
 		opts.has_editName = true
 		opts.editName = *editName
-	}, fmt.Sprintf("handler.AddSectionEditName(string %+v)}", editName)}
+	}, fmt.Sprintf("handler.AddSectionEditName(string %+v)", editName)}
 }
 
 func AddSectionFooterHTML(footerHTML string) AddSectionOption {
 	return AddSectionOption{func(opts *addSectionOptionImpl) {
 		opts.has_footerHTML = true
 		opts.footerHTML = footerHTML
-	}, fmt.Sprintf("handler.AddSectionFooterHTML(string %+v)}", footerHTML)}
+	}, fmt.Sprintf("handler.AddSectionFooterHTML(string %+v)", footerHTML)}
 }
 func AddSectionFooterHTMLFlag(footerHTML *string) AddSectionOption {
 	return AddSectionOption{func(opts *addSectionOptionImpl) {
@@ -62,14 +62,14 @@ func AddSectionFooterHTMLFlag(footerHTML *string) AddSectionOption {
 		}
 		opts.has_footerHTML = true
 		opts.footerHTML = *footerHTML
-	}, fmt.Sprintf("handler.AddSectionFooterHTML(string %+v)}", footerHTML)}
+	}, fmt.Sprintf("handler.AddSectionFooterHTML(string %+v)", footerHTML)}
 }
 
 func AddSectionFormatHTML(formatHTML bool) AddSectionOption {
 	return AddSectionOption{func(opts *addSectionOptionImpl) {
 		opts.has_formatHTML = true
 		opts.formatHTML = formatHTML
-	}, fmt.Sprintf("handler.AddSectionFormatHTML(bool %+v)}", formatHTML)}
+	}, fmt.Sprintf("handler.AddSectionFormatHTML(bool %+v)", formatHTML)}
 }
 func AddSectionFormatHTMLFlag(formatHTML *bool) AddSectionOption {
 	return AddSectionOption{func(opts *addSectionOptionImpl) {
@@ -78,14 +78,14 @@ func AddSectionFormatHTMLFlag(formatHTML *bool) AddSectionOption {
 		}
 		opts.has_formatHTML = true
 		opts.formatHTML = *formatHTML
-	}, fmt.Sprintf("handler.AddSectionFormatHTML(bool %+v)}", formatHTML)}
+	}, fmt.Sprintf("handler.AddSectionFormatHTML(bool %+v)", formatHTML)}
 }
 
 func AddSectionHandlersFiles(handlersFiles []string) AddSectionOption {
 	return AddSectionOption{func(opts *addSectionOptionImpl) {
 		opts.has_handlersFiles = true
 		opts.handlersFiles = handlersFiles
-	}, fmt.Sprintf("handler.AddSectionHandlersFiles([]string %+v)}", handlersFiles)}
+	}, fmt.Sprintf("handler.AddSectionHandlersFiles([]string %+v)", handlersFiles)}
 }
 func AddSectionHandlersFilesFlag(handlersFiles *[]string) AddSectionOption {
 	return AddSectionOption{func(opts *addSectionOptionImpl) {
@@ -94,14 +94,14 @@ func AddSectionHandlersFilesFlag(handlersFiles *[]string) AddSectionOption {
 		}
 		opts.has_handlersFiles = true
 		opts.handlersFiles = *handlersFiles
-	}, fmt.Sprintf("handler.AddSectionHandlersFiles([]string %+v)}", handlersFiles)}
+	}, fmt.Sprintf("handler.AddSectionHandlersFiles([]string %+v)", handlersFiles)}
 }
 
 func AddSectionHandlersFilesRoot(handlersFilesRoot string) AddSectionOption {
 	return AddSectionOption{func(opts *addSectionOptionImpl) {
 		opts.has_handlersFilesRoot = true
 		opts.handlersFilesRoot = handlersFilesRoot
-	}, fmt.Sprintf("handler.AddSectionHandlersFilesRoot(string %+v)}", handlersFilesRoot)}
+	}, fmt.Sprintf("handler.AddSectionHandlersFilesRoot(string %+v)", handlersFilesRoot)}
 }
 func AddSectionHandlersFilesRootFlag(handlersFilesRoot *string) AddSectionOption {
 	return AddSectionOption{func(opts *addSectionOptionImpl) {
@@ -110,14 +110,14 @@ func AddSectionHandlersFilesRootFlag(handlersFilesRoot *string) AddSectionOption
 		}
 		opts.has_handlersFilesRoot = true
 		opts.handlersFilesRoot = *handlersFilesRoot
-	}, fmt.Sprintf("handler.AddSectionHandlersFilesRoot(string %+v)}", handlersFilesRoot)}
+	}, fmt.Sprintf("handler.AddSectionHandlersFilesRoot(string %+v)", handlersFilesRoot)}
 }
 
 func AddSectionIndexName(indexName string) AddSectionOption {
 	return AddSectionOption{func(opts *addSectionOptionImpl) {
 		opts.has_indexName = true
 		opts.indexName = indexName
-	}, fmt.Sprintf("handler.AddSectionIndexName(string %+v)}", indexName)}
+	}, fmt.Sprintf("handler.AddSectionIndexName(string %+v)", indexName)}
 }
 func AddSectionIndexNameFlag(indexName *string) AddSectionOption {
 	return AddSectionOption{func(opts *addSectionOptionImpl) {
@@ -126,14 +126,14 @@ func AddSectionIndexNameFlag(indexName *string) AddSectionOption {
 		}
 		opts.has_indexName = true
 		opts.indexName = *indexName
-	}, fmt.Sprintf("handler.AddSectionIndexName(string %+v)}", indexName)}
+	}, fmt.Sprintf("handler.AddSectionIndexName(string %+v)", indexName)}
 }
 
 func AddSectionKey(key string) AddSectionOption {
 	return AddSectionOption{func(opts *addSectionOptionImpl) {
 		opts.has_key = true
 		opts.key = key
-	}, fmt.Sprintf("handler.AddSectionKey(string %+v)}", key)}
+	}, fmt.Sprintf("handler.AddSectionKey(string %+v)", key)}
 }
 func AddSectionKeyFlag(key *string) AddSectionOption {
 	return AddSectionOption{func(opts *addSectionOptionImpl) {
@@ -142,14 +142,14 @@ func AddSectionKeyFlag(key *string) AddSectionOption {
 		}
 		opts.has_key = true
 		opts.key = *key
-	}, fmt.Sprintf("handler.AddSectionKey(string %+v)}", key)}
+	}, fmt.Sprintf("handler.AddSectionKey(string %+v)", key)}
 }
 
 func AddSectionSerializedSourceLocations(serializedSourceLocations []byte) AddSectionOption {
 	return AddSectionOption{func(opts *addSectionOptionImpl) {
 		opts.has_serializedSourceLocations = true
 		opts.serializedSourceLocations = serializedSourceLocations
-	}, fmt.Sprintf("handler.AddSectionSerializedSourceLocations([]byte %+v)}", serializedSourceLocations)}
+	}, fmt.Sprintf("handler.AddSectionSerializedSourceLocations([]byte %+v)", serializedSourceLocations)}
 }
 func AddSectionSerializedSourceLocationsFlag(serializedSourceLocations *[]byte) AddSectionOption {
 	return AddSectionOption{func(opts *addSectionOptionImpl) {
@@ -158,14 +158,14 @@ func AddSectionSerializedSourceLocationsFlag(serializedSourceLocations *[]byte) 
 		}
 		opts.has_serializedSourceLocations = true
 		opts.serializedSourceLocations = *serializedSourceLocations
-	}, fmt.Sprintf("handler.AddSectionSerializedSourceLocations([]byte %+v)}", serializedSourceLocations)}
+	}, fmt.Sprintf("handler.AddSectionSerializedSourceLocations([]byte %+v)", serializedSourceLocations)}
 }
 
 func AddSectionSourceLinkURIRoot(sourceLinkURIRoot string) AddSectionOption {
 	return AddSectionOption{func(opts *addSectionOptionImpl) {
 		opts.has_sourceLinkURIRoot = true
 		opts.sourceLinkURIRoot = sourceLinkURIRoot
-	}, fmt.Sprintf("handler.AddSectionSourceLinkURIRoot(string %+v)}", sourceLinkURIRoot)}
+	}, fmt.Sprintf("handler.AddSectionSourceLinkURIRoot(string %+v)", sourceLinkURIRoot)}
 }
 func AddSectionSourceLinkURIRootFlag(sourceLinkURIRoot *string) AddSectionOption {
 	return AddSectionOption{func(opts *addSectionOptionImpl) {
@@ -174,14 +174,14 @@ func AddSectionSourceLinkURIRootFlag(sourceLinkURIRoot *string) AddSectionOption
 		}
 		opts.has_sourceLinkURIRoot = true
 		opts.sourceLinkURIRoot = *sourceLinkURIRoot
-	}, fmt.Sprintf("handler.AddSectionSourceLinkURIRoot(string %+v)}", sourceLinkURIRoot)}
+	}, fmt.Sprintf("handler.AddSectionSourceLinkURIRoot(string %+v)", sourceLinkURIRoot)}
 }
 
 func AddSectionSourceLinks(sourceLinks bool) AddSectionOption {
 	return AddSectionOption{func(opts *addSectionOptionImpl) {
 		opts.has_sourceLinks = true
 		opts.sourceLinks = sourceLinks
-	}, fmt.Sprintf("handler.AddSectionSourceLinks(bool %+v)}", sourceLinks)}
+	}, fmt.Sprintf("handler.AddSectionSourceLinks(bool %+v)", sourceLinks)}
 }
 func AddSectionSourceLinksFlag(sourceLinks *bool) AddSectionOption {
 	return AddSectionOption{func(opts *addSectionOptionImpl) {
@@ -190,7 +190,7 @@ func AddSectionSourceLinksFlag(sourceLinks *bool) AddSectionOption {
 		}
 		opts.has_sourceLinks = true
 		opts.sourceLinks = *sourceLinks
-	}, fmt.Sprintf("handler.AddSectionSourceLinks(bool %+v)}", sourceLinks)}
+	}, fmt.Sprintf("handler.AddSectionSourceLinks(bool %+v)", sourceLinks)}
 }
 
 type addSectionOptionImpl struct {

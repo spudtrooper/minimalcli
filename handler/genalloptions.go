@@ -29,7 +29,7 @@ func GenAllFooterHTML(footerHTML string) GenAllOption {
 	return GenAllOption{func(opts *genAllOptionImpl) {
 		opts.has_footerHTML = true
 		opts.footerHTML = footerHTML
-	}, fmt.Sprintf("handler.GenAllFooterHTML(string %+v)}", footerHTML)}
+	}, fmt.Sprintf("handler.GenAllFooterHTML(string %+v)", footerHTML)}
 }
 func GenAllFooterHTMLFlag(footerHTML *string) GenAllOption {
 	return GenAllOption{func(opts *genAllOptionImpl) {
@@ -38,14 +38,14 @@ func GenAllFooterHTMLFlag(footerHTML *string) GenAllOption {
 		}
 		opts.has_footerHTML = true
 		opts.footerHTML = *footerHTML
-	}, fmt.Sprintf("handler.GenAllFooterHTML(string %+v)}", footerHTML)}
+	}, fmt.Sprintf("handler.GenAllFooterHTML(string %+v)", footerHTML)}
 }
 
 func GenAllFormatHTML(formatHTML bool) GenAllOption {
 	return GenAllOption{func(opts *genAllOptionImpl) {
 		opts.has_formatHTML = true
 		opts.formatHTML = formatHTML
-	}, fmt.Sprintf("handler.GenAllFormatHTML(bool %+v)}", formatHTML)}
+	}, fmt.Sprintf("handler.GenAllFormatHTML(bool %+v)", formatHTML)}
 }
 func GenAllFormatHTMLFlag(formatHTML *bool) GenAllOption {
 	return GenAllOption{func(opts *genAllOptionImpl) {
@@ -54,14 +54,14 @@ func GenAllFormatHTMLFlag(formatHTML *bool) GenAllOption {
 		}
 		opts.has_formatHTML = true
 		opts.formatHTML = *formatHTML
-	}, fmt.Sprintf("handler.GenAllFormatHTML(bool %+v)}", formatHTML)}
+	}, fmt.Sprintf("handler.GenAllFormatHTML(bool %+v)", formatHTML)}
 }
 
 func GenAllRoute(route string) GenAllOption {
 	return GenAllOption{func(opts *genAllOptionImpl) {
 		opts.has_route = true
 		opts.route = route
-	}, fmt.Sprintf("handler.GenAllRoute(string %+v)}", route)}
+	}, fmt.Sprintf("handler.GenAllRoute(string %+v)", route)}
 }
 func GenAllRouteFlag(route *string) GenAllOption {
 	return GenAllOption{func(opts *genAllOptionImpl) {
@@ -70,14 +70,14 @@ func GenAllRouteFlag(route *string) GenAllOption {
 		}
 		opts.has_route = true
 		opts.route = *route
-	}, fmt.Sprintf("handler.GenAllRoute(string %+v)}", route)}
+	}, fmt.Sprintf("handler.GenAllRoute(string %+v)", route)}
 }
 
 func GenAllTitle(title string) GenAllOption {
 	return GenAllOption{func(opts *genAllOptionImpl) {
 		opts.has_title = true
 		opts.title = title
-	}, fmt.Sprintf("handler.GenAllTitle(string %+v)}", title)}
+	}, fmt.Sprintf("handler.GenAllTitle(string %+v)", title)}
 }
 func GenAllTitleFlag(title *string) GenAllOption {
 	return GenAllOption{func(opts *genAllOptionImpl) {
@@ -86,7 +86,7 @@ func GenAllTitleFlag(title *string) GenAllOption {
 		}
 		opts.has_title = true
 		opts.title = *title
-	}, fmt.Sprintf("handler.GenAllTitle(string %+v)}", title)}
+	}, fmt.Sprintf("handler.GenAllTitle(string %+v)", title)}
 }
 
 type genAllOptionImpl struct {

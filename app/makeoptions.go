@@ -19,7 +19,7 @@ func MakePrintBanner(printBanner bool) MakeOption {
 	return MakeOption{func(opts *makeOptionImpl) {
 		opts.has_printBanner = true
 		opts.printBanner = printBanner
-	}, fmt.Sprintf("app.MakePrintBanner(bool %+v)}", printBanner)}
+	}, fmt.Sprintf("app.MakePrintBanner(bool %+v)", printBanner)}
 }
 func MakePrintBannerFlag(printBanner *bool) MakeOption {
 	return MakeOption{func(opts *makeOptionImpl) {
@@ -28,7 +28,7 @@ func MakePrintBannerFlag(printBanner *bool) MakeOption {
 		}
 		opts.has_printBanner = true
 		opts.printBanner = *printBanner
-	}, fmt.Sprintf("app.MakePrintBanner(bool %+v)}", printBanner)}
+	}, fmt.Sprintf("app.MakePrintBanner(bool %+v)", printBanner)}
 }
 
 type makeOptionImpl struct {

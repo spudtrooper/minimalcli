@@ -31,7 +31,7 @@ func NewHandlerCliOnly(cliOnly bool) NewHandlerOption {
 	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
 		opts.has_cliOnly = true
 		opts.cliOnly = cliOnly
-	}, fmt.Sprintf("handler.NewHandlerCliOnly(bool %+v)}", cliOnly)}
+	}, fmt.Sprintf("handler.NewHandlerCliOnly(bool %+v)", cliOnly)}
 }
 func NewHandlerCliOnlyFlag(cliOnly *bool) NewHandlerOption {
 	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
@@ -40,14 +40,14 @@ func NewHandlerCliOnlyFlag(cliOnly *bool) NewHandlerOption {
 		}
 		opts.has_cliOnly = true
 		opts.cliOnly = *cliOnly
-	}, fmt.Sprintf("handler.NewHandlerCliOnly(bool %+v)}", cliOnly)}
+	}, fmt.Sprintf("handler.NewHandlerCliOnly(bool %+v)", cliOnly)}
 }
 
 func NewHandlerExtraRequiredFields(extraRequiredFields []string) NewHandlerOption {
 	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
 		opts.has_extraRequiredFields = true
 		opts.extraRequiredFields = extraRequiredFields
-	}, fmt.Sprintf("handler.NewHandlerExtraRequiredFields([]string %+v)}", extraRequiredFields)}
+	}, fmt.Sprintf("handler.NewHandlerExtraRequiredFields([]string %+v)", extraRequiredFields)}
 }
 func NewHandlerExtraRequiredFieldsFlag(extraRequiredFields *[]string) NewHandlerOption {
 	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
@@ -56,14 +56,14 @@ func NewHandlerExtraRequiredFieldsFlag(extraRequiredFields *[]string) NewHandler
 		}
 		opts.has_extraRequiredFields = true
 		opts.extraRequiredFields = *extraRequiredFields
-	}, fmt.Sprintf("handler.NewHandlerExtraRequiredFields([]string %+v)}", extraRequiredFields)}
+	}, fmt.Sprintf("handler.NewHandlerExtraRequiredFields([]string %+v)", extraRequiredFields)}
 }
 
 func NewHandlerMetadata(metadata HandlerMetadata) NewHandlerOption {
 	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
 		opts.has_metadata = true
 		opts.metadata = metadata
-	}, fmt.Sprintf("handler.NewHandlerMetadata(HandlerMetadata %+v)}", metadata)}
+	}, fmt.Sprintf("handler.NewHandlerMetadata(HandlerMetadata %+v)", metadata)}
 }
 func NewHandlerMetadataFlag(metadata *HandlerMetadata) NewHandlerOption {
 	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
@@ -72,14 +72,14 @@ func NewHandlerMetadataFlag(metadata *HandlerMetadata) NewHandlerOption {
 		}
 		opts.has_metadata = true
 		opts.metadata = *metadata
-	}, fmt.Sprintf("handler.NewHandlerMetadata(HandlerMetadata %+v)}", metadata)}
+	}, fmt.Sprintf("handler.NewHandlerMetadata(HandlerMetadata %+v)", metadata)}
 }
 
 func NewHandlerMethod(method string) NewHandlerOption {
 	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
 		opts.has_method = true
 		opts.method = method
-	}, fmt.Sprintf("handler.NewHandlerMethod(string %+v)}", method)}
+	}, fmt.Sprintf("handler.NewHandlerMethod(string %+v)", method)}
 }
 func NewHandlerMethodFlag(method *string) NewHandlerOption {
 	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
@@ -88,14 +88,14 @@ func NewHandlerMethodFlag(method *string) NewHandlerOption {
 		}
 		opts.has_method = true
 		opts.method = *method
-	}, fmt.Sprintf("handler.NewHandlerMethod(string %+v)}", method)}
+	}, fmt.Sprintf("handler.NewHandlerMethod(string %+v)", method)}
 }
 
 func NewHandlerRenderer(renderer Renderer) NewHandlerOption {
 	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
 		opts.has_renderer = true
 		opts.renderer = renderer
-	}, fmt.Sprintf("handler.NewHandlerRenderer(Renderer %+v)}", renderer)}
+	}, fmt.Sprintf("handler.NewHandlerRenderer(Renderer %+v)", renderer)}
 }
 func NewHandlerRendererFlag(renderer *Renderer) NewHandlerOption {
 	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
@@ -104,14 +104,14 @@ func NewHandlerRendererFlag(renderer *Renderer) NewHandlerOption {
 		}
 		opts.has_renderer = true
 		opts.renderer = *renderer
-	}, fmt.Sprintf("handler.NewHandlerRenderer(Renderer %+v)}", renderer)}
+	}, fmt.Sprintf("handler.NewHandlerRenderer(Renderer %+v)", renderer)}
 }
 
 func NewHandlerRendererConfig(rendererConfig RendererConfig) NewHandlerOption {
 	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
 		opts.has_rendererConfig = true
 		opts.rendererConfig = rendererConfig
-	}, fmt.Sprintf("handler.NewHandlerRendererConfig(RendererConfig %+v)}", rendererConfig)}
+	}, fmt.Sprintf("handler.NewHandlerRendererConfig(RendererConfig %+v)", rendererConfig)}
 }
 func NewHandlerRendererConfigFlag(rendererConfig *RendererConfig) NewHandlerOption {
 	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
@@ -120,14 +120,14 @@ func NewHandlerRendererConfigFlag(rendererConfig *RendererConfig) NewHandlerOpti
 		}
 		opts.has_rendererConfig = true
 		opts.rendererConfig = *rendererConfig
-	}, fmt.Sprintf("handler.NewHandlerRendererConfig(RendererConfig %+v)}", rendererConfig)}
+	}, fmt.Sprintf("handler.NewHandlerRendererConfig(RendererConfig %+v)", rendererConfig)}
 }
 
 func NewHandlerWebOnly(webOnly bool) NewHandlerOption {
 	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
 		opts.has_webOnly = true
 		opts.webOnly = webOnly
-	}, fmt.Sprintf("handler.NewHandlerWebOnly(bool %+v)}", webOnly)}
+	}, fmt.Sprintf("handler.NewHandlerWebOnly(bool %+v)", webOnly)}
 }
 func NewHandlerWebOnlyFlag(webOnly *bool) NewHandlerOption {
 	return NewHandlerOption{func(opts *newHandlerOptionImpl) {
@@ -136,7 +136,7 @@ func NewHandlerWebOnlyFlag(webOnly *bool) NewHandlerOption {
 		}
 		opts.has_webOnly = true
 		opts.webOnly = *webOnly
-	}, fmt.Sprintf("handler.NewHandlerWebOnly(bool %+v)}", webOnly)}
+	}, fmt.Sprintf("handler.NewHandlerWebOnly(bool %+v)", webOnly)}
 }
 
 type newHandlerOptionImpl struct {
