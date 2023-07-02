@@ -493,6 +493,13 @@ A TODO API for go.
 		return nil
 	})
 
+	tb.Add("testing", func() error {
+		if err := run(rootDir, path.Join(scriptsDir, "run.sh")); err != nil {
+			return err
+		}
+		return nil
+	})
+
 	return tb.Build().Go()
 }
 
