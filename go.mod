@@ -5,6 +5,7 @@ go 1.18
 replace github.com/spudtrooper/goutil => ../goutil
 
 require (
+	github.com/fatih/color v1.13.0
 	github.com/iancoleman/strcase v0.2.0
 	github.com/motki/cli v0.4.0
 	github.com/pkg/errors v0.9.1
@@ -15,9 +16,8 @@ require (
 
 require (
 	github.com/TylerBrock/colorjson v0.0.0-20200706003622-8a50f05110d2 // indirect
-	github.com/fatih/color v1.13.0 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
-	golang.org/x/net v0.0.0-20210813160813-60bc85c4be6d // indirect
+	golang.org/x/net v0.0.0-20211029224645-99673261e6eb // indirect
 	golang.org/x/sys v0.0.0-20211205182925-97ca703d548d // indirect
 )
